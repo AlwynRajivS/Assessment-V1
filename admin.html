@@ -717,12 +717,28 @@ function removeTest(testId){
 }
 function showQr(testId){
   google.script.run.withSuccessHandler(function(res){
+    
+    const EXAM_URL = 'https://alwynrajivs.github.io/Assessment-V1/';
+
     document.getElementById('qr-card').classList.remove('hidden');
-    document.getElementById('qr-testid').innerText = 'Test ID: '+res.testId;
-    document.getElementById('qr-img').src = res.qr;
-    document.getElementById('qr-link').value = res.link;
-    document.getElementById('qr-open').href = res.link;
-    document.getElementById('qr-card').scrollIntoView({behavior:'smooth', block:'center'});
+    document.getElementById('qr-testid').innerText = 'Test ID: ' + res.testId;
+    
+    // Display the GitHub Pages exam link
+    document.getElementById('qr-link').value = EXAM_URL;
+    
+    // Open the GitHub Pages exam link
+    document.getElementById('qr-open').href = EXAM_URL;
+    
+    // Generate/show QR code for the GitHub Pages exam link
+    document.getElementById('qr-img').src =
+      'https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=' +
+      encodeURIComponent(EXAM_URL);
+
+    document.getElementById('qr-card').scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
   }).getExamLinkAndQr(TOKEN, testId);
 }
 function copyLink(){
