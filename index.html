@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#4a86e8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{
+  --primary:#4a86e8; --primary-dark:#3567c4; --primary-light:#7aa8f0; --danger:#e04b4b; --success:#2fa86b;
+  --bg:#f3f5fb; --bg-grad1:#eef2ff; --bg-grad2:#f7f0ff; --card:#ffffff; --text:#1f2430; --muted:#6b7280;
+  --border:#e5e7eb; --input-bg:#fafbff; --shadow:0 2px 14px rgba(31,36,48,.07); --overlay:rgba(20,20,30,.92);
+  --radius-lg:18px; --radius-md:12px; --radius-sm:8px;
+}
+[data-theme="dark"]{
+  --primary:#6d9bfb; --primary-dark:#8ab0ff; --primary-light:#a9c6ff; --danger:#ff6b6b; --success:#3ecf8e;
+  --bg:#12141c; --bg-grad1:#161a29; --bg-grad2:#1c1430; --card:#1b1e2b; --text:#e7e9f3; --muted:#9aa0b4;
+  --border:#2c3040; --input-bg:#20232f; --shadow:0 2px 20px rgba(0,0,0,.45); --overlay:rgba(6,7,12,.94);
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html{scroll-behavior:smooth; -webkit-text-size-adjust:100%;}
+body{margin:0;font-family:'Poppins','Segoe UI',Roboto,Arial,sans-serif;color:var(--text);
+  -webkit-user-select:none;user-select:none;min-height:100vh;min-height:100dvh;position:relative;overflow-x:hidden;
+  background:linear-gradient(120deg,var(--bg-grad1),var(--bg) 45%,var(--bg-grad2));
+  background-size:200% 200%; animation:bgshift 18s ease infinite;
+  transition:background .4s ease,color .3s ease;
+  touch-action:manipulation;}
+@keyframes bgshift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
+
+/* decorative floating blobs */
+.blob{position:fixed;border-radius:50%;filter:blur(60px);opacity:.35;z-index:0;pointer-events:none;}
+.blob1{width:280px;height:280px;background:var(--primary);top:-90px;left:-80px;animation:blobMove 14s ease-in-out infinite;}
+.blob2{width:320px;height:320px;background:#b28cf0;bottom:-110px;right:-100px;animation:blobMove 16s ease-in-out infinite reverse;}
+.blob3{width:200px;height:200px;background:var(--success);top:40%;right:-70px;animation:blobMove 12s ease-in-out infinite;}
+[data-theme="dark"] .blob{opacity:.18;}
+@keyframes blobMove{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(20px,-25px) scale(1.08);}}
+@media(max-width:480px){.blob{filter:blur(45px);}.blob1{width:180px;height:180px;}.blob2{width:220px;height:220px;}.blob3{display:none;}}
+
+.allow-select{user-select:text;-webkit-user-select:text;}
+.wrap{max-width:640px;margin:0 auto;padding:16px;min-height:100vh;position:relative;z-index:1;}
+.exam-wrap{max-width:900px;}
+.card{background:var(--card);border-radius:var(--radius-lg);box-shadow:var(--shadow);padding:24px;margin-bottom:16px;
+  border:1px solid var(--border);backdrop-filter:blur(6px);
+  animation:cardIn .5s cubic-bezier(.16,1,.3,1) both;transition:background .3s ease,border-color .3s ease,transform .2s ease,box-shadow .2s ease;}
+.card:hover{box-shadow:0 10px 30px rgba(74,134,232,.14);}
+@keyframes cardIn{from{opacity:0;transform:translateY(14px) scale(.985);}to{opacity:1;transform:translateY(0) scale(1);}}
+h1{font-size:1.55rem;margin:6px 0 2px;font-weight:800;letter-spacing:-.02em;}
+h2{font-size:1.18rem;margin:0 0 10px;font-weight:700;}
+p.sub{color:var(--muted);margin-top:0;font-size:.92rem;}
+.brand{display:flex;align-items:center;gap:12px;justify-content:center;margin:26px 0 14px;position:relative;animation:cardIn .5s ease both;}
+.brand .logo{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:1.3rem;
+  box-shadow:0 6px 18px rgba(74,134,232,.45);animation:floaty 3.5s ease-in-out infinite;}
+.brand h1{background:linear-gradient(135deg,var(--text),var(--primary-dark));-webkit-background-clip:text;
+  background-clip:text;color:transparent;}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(0deg);}50%{transform:translateY(-5px) rotate(-4deg);}}
+label{display:block;font-size:.85rem;font-weight:600;color:var(--text);opacity:.85;margin:14px 0 6px;}
+input[type=text],input[type=password],input[type=datetime-local],input[type=number],textarea,select{
+  width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;
+  background:var(--input-bg);color:var(--text);transition:.18s;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(74,134,232,.15);background:var(--card);}
+input.upper{text-transform:uppercase;letter-spacing:.02em;}
+button{cursor:pointer;border:none;border-radius:10px;font-size:.98rem;font-weight:600;padding:13px 18px;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease,opacity .15s ease;
+  position:relative;overflow:hidden;font-family:inherit;min-height:44px;}
+button:active{transform:scale(.97);}
+button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.55);transform:scale(0);
+  animation:rippleAnim .55s ease-out forwards;pointer-events:none;}
+.btn-outline .ripple,.btn-outline .ripple{background:rgba(74,134,232,.25);}
+@keyframes rippleAnim{to{transform:scale(2.6);opacity:0;}}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;width:100%;
+  box-shadow:0 4px 14px rgba(74,134,232,.35);}
+.btn-primary:hover{box-shadow:0 8px 22px rgba(74,134,232,.5);transform:translateY(-2px);}
+.btn-primary:disabled{background:#aab8d6;box-shadow:none;cursor:not-allowed;transform:none;}
+.btn-outline{background:transparent;border:1.5px solid var(--primary);color:var(--primary);}
+.btn-outline:hover{background:rgba(74,134,232,.1);transform:translateY(-1px);}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#c23434);color:#fff;box-shadow:0 4px 14px rgba(224,75,75,.35);}
+.btn-danger:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(224,75,75,.5);}
+.msg{padding:10px 14px;border-radius:8px;font-size:.9rem;margin-top:10px;animation:cardIn .3s ease both;}
+.msg.error{background:#fdeaea;color:#a12727;}
+.msg.info{background:#eaf2ff;color:#2856a3;}
+.msg.success{background:#e8f8f0;color:#1e7c4d;}
+[data-theme="dark"] .msg.error{background:#3a1c1c;color:#ff9b9b;}
+[data-theme="dark"] .msg.info{background:#152238;color:#9cc0ff;}
+[data-theme="dark"] .msg.success{background:#123626;color:#8fe8bd;}
+.hidden{display:none !important;}
+.spinner{width:20px;height:20px;border:3px solid #d5deff;border-top-color:var(--primary);
+  border-radius:50%;animation:spin .8s linear infinite;margin:14px auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.skeleton{border-radius:8px;background:linear-gradient(90deg,var(--input-bg) 25%,var(--border) 37%,var(--input-bg) 63%);
+  background-size:400% 100%;animation:skeletonWave 1.4s ease infinite;}
+@keyframes skeletonWave{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+
+/* admin access link on entry screen */
+.admin-link-row{display:flex;justify-content:center;margin-top:6px;}
+.admin-link{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:600;color:var(--muted);
+  background:var(--card);border:1px solid var(--border);border-radius:20px;padding:9px 18px;text-decoration:none;
+  box-shadow:var(--shadow);transition:.2s;min-height:38px;}
+.admin-link:hover{color:var(--primary);border-color:var(--primary);transform:translateY(-1px);}
+
+/* Toasts */
+#toast-stack{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:1200;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px);pointer-events:none;}
+.toast{pointer-events:auto;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);
+  border-radius:12px;padding:12px 16px;font-size:.88rem;display:flex;align-items:center;gap:10px;
+  animation:toastIn .3s cubic-bezier(.16,1,.3,1) both;}
+.toast.leave{animation:toastOut .25s ease forwards;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.96);}}
+.toast .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.toast.error .dot{background:var(--danger);}
+.toast.info .dot{background:var(--primary);}
+.toast.success .dot{background:var(--success);}
+
+/* Modal (replaces native confirm/alert so full-screen mode is preserved) */
+.modal-backdrop{position:fixed;inset:0;background:var(--overlay);z-index:1100;display:flex;align-items:center;
+  justify-content:center;padding:20px;animation:fadeIn .2s ease both;backdrop-filter:blur(3px);}
+.modal-box{background:var(--card);border-radius:16px;max-width:420px;width:100%;padding:22px;box-shadow:var(--shadow);
+  animation:modalIn .28s cubic-bezier(.16,1,.3,1) both;}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-box h3{margin:0 0 8px;font-size:1.08rem;}
+.modal-box p{margin:0 0 18px;font-size:.92rem;color:var(--muted);line-height:1.55;}
+.modal-actions{display:flex;gap:10px;}
+.modal-actions button{flex:1;}
+
+/* Theme toggle */
+.theme-toggle{position:fixed;top:14px;right:14px;z-index:200;width:42px;height:42px;border-radius:50%;
+  background:var(--card);box-shadow:var(--shadow);border:1px solid var(--border);display:flex;align-items:center;
+  justify-content:center;font-size:1.15rem;transition:transform .3s ease,background .3s ease;padding:0;}
+.theme-toggle:hover{transform:scale(1.08) rotate(15deg);}
+.theme-toggle:active{transform:scale(.92);}
+
+/* Timer bar */
+.topbar{position:sticky;top:0;z-index:50;background:var(--card);border-bottom:1px solid var(--border);
+  padding:10px 16px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+  transition:background .3s ease;animation:cardIn .4s ease both;}
+.timer{font-weight:700;font-size:1.15rem;padding:6px 14px;border-radius:20px;background:#eaf2ff;color:var(--primary-dark);
+  transition:.2s;font-variant-numeric:tabular-nums;}
+[data-theme="dark"] .timer{background:#1c2740;}
+.timer.low{background:#fdeaea;color:var(--danger);animation:pulse 1s infinite;}
+[data-theme="dark"] .timer.low{background:#3a1c1c;}
+@keyframes pulse{50%{opacity:.5;transform:scale(1.04);}}
+.violation-badge{background:#fff3e0;color:#b45309;padding:5px 12px;border-radius:16px;font-size:.82rem;font-weight:600;
+  transition:background .2s ease,transform .2s ease;}
+[data-theme="dark"] .violation-badge{background:#3a2a10;color:#ffb74d;}
+.violation-badge.bump{animation:bump .35s ease;}
+@keyframes bump{0%{transform:scale(1);}40%{transform:scale(1.15);}100%{transform:scale(1);}}
+
+/* progress bar (visual sense of overall completion) */
+.progress-track{height:5px;border-radius:4px;background:var(--input-bg);overflow:hidden;margin-bottom:14px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--primary-light));border-radius:4px;
+  transition:width .35s cubic-bezier(.16,1,.3,1);}
+
+/* Question palette */
+.palette{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;}
+.pnum{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  font-size:.82rem;font-weight:600;background:var(--input-bg);color:var(--text);cursor:pointer;border:2px solid transparent;
+  transition:.15s;animation:popIn .3s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(.5);}to{opacity:1;transform:scale(1);}}
+.pnum:hover{transform:translateY(-2px);}
+.pnum.answered{background:#dcf3e6;color:#1e7c4d;}
+[data-theme="dark"] .pnum.answered{background:#123626;color:#8fe8bd;}
+.pnum.current{border-color:var(--primary);box-shadow:0 0 0 3px rgba(74,134,232,.18);}
+.q-text{font-size:1.05rem;line-height:1.55;margin-bottom:12px;animation:fadeSlide .35s ease both;}
+@keyframes fadeSlide{from{opacity:0;transform:translateX(10px);}to{opacity:1;transform:translateX(0);}}
+.q-text img{max-width:100%;border-radius:8px;margin-top:8px;}
+.q-text table{border-collapse:collapse;margin:10px 0;width:100%;display:block;overflow-x:auto;}
+.q-text td,.q-text th{border:1px solid var(--border);padding:6px 10px;font-size:.9rem;}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:13px 14px;border:1.5px solid var(--border);
+  border-radius:10px;margin-bottom:10px;cursor:pointer;transition:.15s;animation:fadeSlide .35s ease both;}
+.opt:hover{border-color:var(--primary-light);transform:translateX(2px);}
+.opt.selected{border-color:var(--primary);background:rgba(74,134,232,.1);}
+.opt input{margin-top:3px;width:18px;height:18px;flex-shrink:0;}
+.navrow{display:flex;justify-content:space-between;gap:10px;margin-top:16px;}
+.navrow button{flex:1;}
+
+/* fullscreen overlay warning */
+.fs-warning{position:fixed;inset:0;background:var(--overlay);color:#fff;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:999;text-align:center;padding:20px;
+  animation:fadeIn .25s ease both;backdrop-filter:blur(3px);}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.fs-warning button{margin-top:16px;min-width:200px;}
+
+.score-hero{text-align:center;padding:10px 0 4px;}
+.score-hero .big{font-size:2.6rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  -webkit-background-clip:text;background-clip:text;color:transparent;animation:scoreIn .6s cubic-bezier(.2,1,.3,1) both;}
+@keyframes scoreIn{from{opacity:0;transform:scale(.7);}to{opacity:1;transform:scale(1);}}
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:14px;}
+.stat{background:var(--input-bg);border-radius:10px;padding:12px;text-align:center;transition:.2s;animation:cardIn .4s ease both;}
+.stat:hover{transform:translateY(-2px);}
+.stat .v{font-size:1.3rem;font-weight:700;}
+.stat .l{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.03em;}
+.review-item{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;animation:cardIn .35s ease both;}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:10px;margin-left:6px;}
+.tag.correct{background:#dcf3e6;color:#1e7c4d;}
+.tag.wrong{background:#fdeaea;color:#a12727;}
+.tag.skip{background:#f1f2f4;color:#6b7280;}
+[data-theme="dark"] .tag.correct{background:#123626;color:#8fe8bd;}
+[data-theme="dark"] .tag.wrong{background:#3a1c1c;color:#ff9b9b;}
+[data-theme="dark"] .tag.skip{background:#242838;color:#9aa0b4;}
+footer{text-align:center;color:var(--muted);font-size:.78rem;padding:20px 0;}
+
+/* extra mobile polish */
+@media(max-width:480px){
+  .wrap{padding:12px;}
+  .card{padding:18px;border-radius:14px;}
+  h1{font-size:1.3rem;}
+  .brand{margin:18px 0 10px;}
+  .brand .logo{width:42px;height:42px;font-size:1.1rem;}
+  .theme-toggle{top:10px;right:10px;width:38px;height:38px;font-size:1rem;}
+  .score-hero .big{font-size:2.1rem;}
+  .navrow{flex-wrap:wrap;}
+  .navrow button{min-width:31%;}
+  button{padding:12px 14px;font-size:.92rem;}
+  .topbar{padding:8px 12px;}
+  .timer{font-size:1rem;padding:5px 11px;}
+  .violation-badge{font-size:.74rem;padding:4px 9px;}
+  .pnum{width:32px;height:32px;font-size:.76rem;}
+  .admin-link{font-size:.75rem;padding:7px 15px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:360px){
+  .stat-grid{grid-template-columns:1fr 1fr;gap:8px;}
+  .stat{padding:9px;}
+  .stat .v{font-size:1.1rem;}
+  .navrow button{min-width:100%;}
+}
+/* landscape phones during exam: keep controls reachable */
+@media(max-width:820px) and (orientation:landscape){
+  .topbar{padding:6px 12px;}
+}
+/* safe-area for notched phones */
+body{padding-bottom:env(safe-area-inset-bottom);}
+.theme-toggle{top:calc(14px + env(safe-area-inset-top));}
+.topbar{padding-top:calc(10px + env(safe-area-inset-top));}
+
+/* screen transitions */
+.wrap,.exam-wrap{animation:screenIn .4s cubic-bezier(.16,1,.3,1) both;}
+@keyframes screenIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+<div class="blob blob1"></div>
+<div class="blob blob2"></div>
+<div class="blob blob3"></div>
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
+<div id="toast-stack" aria-live="polite"></div>
+
+<!-- ============ SCREEN: ENTRY ============ -->
+<div id="screen-entry" class="wrap">
+  <div class="brand"><div class="logo">A</div><h1 style="margin:0">Assessment Platform</h1></div>
+  <div class="card">
+    <h2>Enter your details</h2>
+    <p class="sub">Enter your Name and Roll Number exactly as instructed (auto-capitalised).</p>
+    <label>Full Name</label>
+    <input id="in-name" type="text" class="upper" placeholder="e.g. JOHN DAVID" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    <label>Roll Number</label>
+    <input id="in-roll" type="text" class="upper" placeholder="e.g. 21CS001" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    <label>Test ID</label>
+    <input id="in-testid" type="text" class="upper" placeholder="e.g. TEST-AB12CD34" autocomplete="off" oninput="this.value=this.value.toUpperCase()">
+    <button class="btn-primary" style="margin-top:18px" id="continue-btn" onclick="verifyAndShowInstructions()">Continue</button>
+    <div id="entry-msg"></div>
+  </div>
+  <div class="admin-link-row">
+    <a class="admin-link" href="admin.html" target="_top">🔐 Admin Login</a>
+  </div>
+  <footer>Once the exam window closes you can revisit this page with the same details to view your result.</footer>
+</div>
+
+<!-- ============ SCREEN: INSTRUCTIONS ============ -->
+<div id="screen-instructions" class="wrap hidden">
+  <div class="card">
+    <h2 id="instr-title">Instructions</h2>
+    <p class="sub" id="instr-meta"></p>
+    <div id="instr-body" class="allow-select" style="line-height:1.6;white-space:pre-wrap;"></div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+    <div style="font-size:.88rem;color:var(--muted);line-height:1.6">
+      • The exam will open in <b>full-screen mode</b>.<br>
+      • Copy, paste, right-click and screenshots are restricted during the exam.<br>
+      • Switching tabs, minimizing, or exiting full-screen will be logged as a <b>violation</b> and may reduce your marks.<br>
+      • Do not refresh or close the browser — the timer keeps running regardless.<br>
+      • Your result will be visible only after the exam window officially closes.
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:16px;font-weight:500;">
+      <input type="checkbox" id="agree-chk" style="width:auto;min-height:auto"> I have read the instructions and agree to follow exam rules.
+    </label>
+    <button class="btn-primary" style="margin-top:12px" id="start-btn" disabled onclick="beginExam()">Start Exam (Full Screen)</button>
+  </div>
+</div>
+
+<!-- ============ SCREEN: EXAM ============ -->
+<div id="screen-exam" class="exam-wrap hidden" style="max-width:900px;margin:0 auto;">
+  <div class="topbar">
+    <div><strong id="exam-title-bar">Exam</strong></div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <span class="violation-badge" id="violation-badge">Violations: 0</span>
+      <span class="timer" id="timer-display">--:--</span>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="card">
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <div class="palette" id="palette"></div>
+      <div class="q-text" id="q-text"></div>
+      <div id="q-options"></div>
+      <div class="navrow">
+        <button class="btn-outline" onclick="navQuestion(-1)">◀ Previous</button>
+        <button class="btn-outline" onclick="clearAnswer()">Clear</button>
+        <button class="btn-outline" onclick="navQuestion(1)">Next ▶</button>
+      </div>
+      <button class="btn-danger" style="width:100%;margin-top:16px" onclick="confirmSubmit()">Submit Exam</button>
+    </div>
+  </div>
+</div>
+
+<!-- fullscreen exit warning -->
+<div id="fs-warning" class="fs-warning hidden">
+  <div style="font-size:2rem">⚠️</div>
+  <h2>Full-screen exited</h2>
+  <p>This has been recorded as a violation. Click below to return to full-screen and continue your exam.</p>
+  <button class="btn-primary" onclick="reEnterFullscreen()">Return to Exam</button>
+</div>
+
+<!-- ============ SCREEN: POST SUBMIT ============ -->
+<div id="screen-postsubmit" class="wrap hidden">
+  <div class="card" style="text-align:center">
+    <div style="font-size:2.4rem">✅</div>
+    <h2>Exam Submitted</h2>
+    <p class="sub" id="postsubmit-msg">Your responses have been recorded successfully.</p>
+    <div class="stat" style="max-width:220px;margin:14px auto;">
+      <div class="v" id="postsubmit-violations">0</div>
+      <div class="l">Violations recorded</div>
+    </div>
+    <p class="sub">Your result will be available once the exam window closes. You can return to this page anytime and re-enter your details to check.</p>
+    <button class="btn-primary" onclick="location.reload()">Back to Home</button>
+  </div>
+</div>
+
+<!-- ============ SCREEN: RESULT / DASHBOARD ============ -->
+<div id="screen-result" class="wrap hidden">
+  <div class="card">
+    <div id="result-wait" class="hidden">
+      <div style="text-align:center">
+        <div style="font-size:2.2rem">⏳</div>
+        <h2>Result not yet available</h2>
+        <p class="sub">Results are released once the exam window officially closes. Please check back later.</p>
+        <div class="violation-badge" id="wait-violations"></div>
+      </div>
+    </div>
+    <div id="result-ready" class="hidden">
+      <div class="score-hero">
+        <p class="sub" style="margin-bottom:0" id="result-name"></p>
+        <div class="big"><span id="result-score"></span>/<span id="result-max"></span></div>
+        <p class="sub">Final Score (after any violation deduction)</p>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><div class="v" id="r-correct">0</div><div class="l">Correct</div></div>
+        <div class="stat"><div class="v" id="r-wrong">0</div><div class="l">Wrong</div></div>
+        <div class="stat"><div class="v" id="r-unattempted">0</div><div class="l">Unattempted</div></div>
+        <div class="stat"><div class="v" id="r-violations">0</div><div class="l">Violations</div></div>
+        <div class="stat"><div class="v" id="r-penalty">0</div><div class="l">Marks Deducted</div></div>
+        <div class="stat"><div class="v" id="r-avgtime">0s</div><div class="l">Avg Time / Q</div></div>
+      </div>
+      <h2 style="margin-top:22px">Answer Review</h2>
+      <div id="result-review"></div>
+    </div>
+    <button class="btn-outline" style="width:100%;margin-top:14px" onclick="location.reload()">Back to Home</button>
+  </div>
+</div>
+
+<!-- modal host -->
+<div id="modal-host"></div>
+
+<script>
+// ============================================================
+// GAS deployment URL — MUST be your Apps Script Web App /exec URL.
+// This is the ONLY place this page talks to Google; everything else
+// below is plain client-side JS that works from any host (GitHub Pages,
+// localhost, a plain double-clicked file, etc.)
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyONXzwfTowmG5soc6Wmo-MXno5kz1Kpifw7R4fluiK3B-J6eaZv1xnzl72SC81plRWMA/exec';
+
+// ------------------------------------------------------------
+// google.script.run POLYFILL
+// ------------------------------------------------------------
+// `google.script.run` is an object Google itself injects into pages it
+// serves via HtmlService — it does NOT exist on pages hosted elsewhere.
+// This polyfill recreates the exact same chainable API
+// (google.script.run.withSuccessHandler(cb).withFailureHandler(cb).fnName(args))
+// so none of the code further down needs to change, but backs it with a
+// fetch() POST to the Apps Script Web App's doPost() JSON router instead.
+//
+// IMPORTANT: your Apps Script Code.gs must contain the doPost(e) dispatcher
+// (see the updated Code.gs) and the deployment must be set to
+// "Who has access: Anyone" for this to work cross-origin without a login.
+(function () {
+  function makeRunner(successHandler, failureHandler) {
+    return new Proxy({}, {
+      get: function (target, fnName) {
+        if (fnName === 'withSuccessHandler') {
+          return function (cb) { return makeRunner(cb, failureHandler); };
+        }
+        if (fnName === 'withFailureHandler') {
+          return function (cb) { return makeRunner(successHandler, cb); };
+        }
+        // Anything else is treated as the remote function name to call.
+        return function () {
+          const args = Array.prototype.slice.call(arguments);
+          fetch(SCRIPT_URL, {
+            method: 'POST',
+            // text/plain keeps this a CORS "simple request" (no preflight),
+            // which Apps Script web apps can't answer. The server still
+            // JSON.parses the raw body regardless of this header.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ fn: fnName, args: args })
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data && data.__gasError) {
+                if (failureHandler) failureHandler({ message: data.__gasError });
+              } else if (successHandler) {
+                successHandler(data ? data.__result : undefined);
+              }
+            })
+            .catch(function (err) {
+              if (failureHandler) failureHandler({ message: (err && err.message) || 'Network error contacting server' });
+            });
+        };
+      }
+    });
+  }
+  window.google = window.google || {};
+  window.google.script = { run: makeRunner(null, null) };
+})();
+
+// ---------------- STATE ----------------
+let STATE = {
+  name:'', roll:'', testId:'', sessionToken:'', endEpoch:0, questions:[], testMeta:{},
+  answers:{}, timeSpent:{}, currentQ:0, violationCount:0, timerInterval:null,
+  qEnterTime:0, examActive:false,
+  // Previously injected by Apps Script server-side templating
+  // (<?= presetTestId ?>), which only works when this file is served
+  // via HtmlService. Read it from the URL instead so it works anywhere,
+  // e.g. yoursite.com/index.html?test=TEST-AB12CD34
+  presetTestId: new URLSearchParams(window.location.search).get('test') || ''
+};
+
+window.addEventListener('load', function(){
+  if(STATE.presetTestId){ document.getElementById('in-testid').value = STATE.presetTestId; }
+  initTheme();
+  initRipples();
+});
+
+// ---------------- THEME ----------------
+function initTheme(){
+  let saved = localStorage.getItem('ap-theme');
+  if(!saved){ saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  applyTheme(saved);
+}
+function applyTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  document.getElementById('theme-toggle').innerText = mode==='dark' ? '☀️' : '🌙';
+  localStorage.setItem('ap-theme', mode);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur==='dark' ? 'light' : 'dark');
+}
+
+// ---------------- MICRO-INTERACTIONS ----------------
+function initRipples(){
+  document.addEventListener('pointerdown', function(e){
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const r = document.createElement('span');
+    r.className='ripple';
+    r.style.width = r.style.height = size+'px';
+    r.style.left = (e.clientX-rect.left-size/2)+'px';
+    r.style.top = (e.clientY-rect.top-size/2)+'px';
+    btn.appendChild(r);
+    setTimeout(function(){ r.remove(); }, 600);
+  });
+}
+
+// ---------------- TOASTS ----------------
+function toast(text, type){
+  type = type || 'info';
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = '<span class="dot"></span><span>'+text+'</span>';
+  stack.appendChild(el);
+  setTimeout(function(){
+    el.classList.add('leave');
+    setTimeout(function(){ el.remove(); }, 250);
+  }, 3200);
+}
+
+// ---------------- MODAL (replaces alert/confirm) ----------------
+function showModal(opts){
+  return new Promise(function(resolve){
+    const host = document.getElementById('modal-host');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal-box">'+
+        '<h3>'+opts.title+'</h3>'+
+        '<p>'+opts.body+'</p>'+
+        '<div class="modal-actions">'+
+          (opts.cancelText ? '<button class="btn-outline" id="modal-cancel">'+opts.cancelText+'</button>' : '')+
+          '<button class="'+(opts.danger?'btn-danger':'btn-primary')+'" id="modal-ok">'+(opts.okText||'OK')+'</button>'+
+        '</div>'+
+      '</div>';
+    host.appendChild(backdrop);
+    function close(result){ backdrop.remove(); resolve(result); }
+    backdrop.querySelector('#modal-ok').onclick = function(){ close(true); };
+    const cancelBtn = backdrop.querySelector('#modal-cancel');
+    if(cancelBtn) cancelBtn.onclick = function(){ close(false); };
+    backdrop.addEventListener('click', function(e){ if(e.target===backdrop && opts.cancelText) close(false); });
+  });
+}
+
+function showScreen(id){
+  ['screen-entry','screen-instructions','screen-exam','screen-postsubmit','screen-result'].forEach(function(s){
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+  window.scrollTo(0,0);
+}
+
+// ---------------- ENTRY / INSTRUCTIONS ----------------
+function verifyAndShowInstructions(){
+  const name = document.getElementById('in-name').value.trim();
+  const roll = document.getElementById('in-roll').value.trim();
+  const testId = document.getElementById('in-testid').value.trim();
+  const msg = document.getElementById('entry-msg');
+  msg.innerHTML='';
+  if(!name || !roll || !testId){ msg.innerHTML = '<div class="msg error">Please fill in Name, Roll Number and Test ID.</div>'; return; }
+  STATE.name=name; STATE.roll=roll; STATE.testId=testId;
+  const btn = document.getElementById('continue-btn');
+  btn.disabled = true;
+  msg.innerHTML = '<div class="spinner"></div>';
+
+  // first check if this candidate already has an attempt (submitted or in-progress)
+  google.script.run.withSuccessHandler(function(existing){
+    btn.disabled = false;
+    if(existing.status === 'ready' || existing.status === 'wait'){
+      msg.innerHTML='';
+      renderResultScreen(existing);
+      return;
+    }
+    if(existing.status === 'in_progress'){
+      msg.innerHTML = '<div class="msg info">Resuming your in-progress exam...</div>';
+      beginExam();
+      return;
+    }
+    proceedToInstructions(testId, msg, btn);
+  }).withFailureHandler(function(){ proceedToInstructions(testId, msg, btn); }).getMyResult(name, roll, testId);
+}
+
+function proceedToInstructions(testId, msg, btn){
+  google.script.run.withSuccessHandler(function(info){
+    if(btn) btn.disabled = false;
+    if(!info.success){
+      msg.innerHTML = '<div class="msg error">'+info.message+'</div>';
+      return;
+    }
+    STATE.testMeta = info;
+    document.getElementById('instr-title').innerText = info.title || 'Exam Instructions';
+    document.getElementById('instr-meta').innerText = 'Duration: '+info.durationMinutes+' min  •  Questions: '+info.questionCount+'  •  Test ID: '+info.testId;
+    document.getElementById('instr-body').innerText = info.instructions || 'No special instructions provided.';
+    document.getElementById('agree-chk').checked=false;
+    document.getElementById('start-btn').disabled=true;
+    document.getElementById('start-btn').innerText = 'Start Exam (Full Screen)';
+    showScreen('screen-instructions');
+    renderMathInElement(document.getElementById('instr-body'), {delimiters:[
+      {left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }).withFailureHandler(function(err){
+    if(btn) btn.disabled = false;
+    msg.innerHTML = '<div class="msg error">'+err.message+'</div>';
+  }).getTestPublicInfo(testId);
+}
+
+document.addEventListener('change', function(e){
+  if(e.target && e.target.id==='agree-chk'){
+    document.getElementById('start-btn').disabled = !e.target.checked;
+  }
+});
+
+// ---------------- START EXAM ----------------
+function beginExam(){
+  requestFullscreenSafe();
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('start-btn').innerText = 'Loading exam...';
+  google.script.run.withSuccessHandler(function(res){
+    if(!res.success){
+      showModal({title:'Unable to start exam', body:res.message || 'Please try again.', okText:'OK'}).then(function(){ location.reload(); });
+      return;
+    }
+    STATE.sessionToken = res.sessionToken;
+    STATE.endEpoch = res.endEpoch;
+    STATE.questions = res.questions;
+    STATE.testMeta = res.testMeta;
+    STATE.answers = {}; STATE.timeSpent = {}; STATE.currentQ = 0; STATE.violationCount = 0;
+    sessionStorage.setItem('examSession', JSON.stringify({
+      sessionToken: STATE.sessionToken, testId: STATE.testId, name: STATE.name, roll: STATE.roll
+    }));
+    document.getElementById('exam-title-bar').innerText = res.testMeta.Title;
+    buildPalette();
+    renderQuestion(0);
+    startTimer();
+    STATE.examActive = true;
+    showScreen('screen-exam');
+  }).withFailureHandler(function(err){
+    showModal({title:'Error', body:err.message, okText:'OK'}).then(function(){ location.reload(); });
+  }).startExam(STATE.name, STATE.roll, STATE.testId);
+}
+
+function requestFullscreenSafe(){
+  const el = document.documentElement;
+  const req = el.requestFullscreen||el.webkitRequestFullscreen||el.mozRequestFullScreen||el.msRequestFullscreen;
+  if(req) req.call(el).catch(function(){});
+}
+function reEnterFullscreen(){
+  requestFullscreenSafe();
+  document.getElementById('fs-warning').classList.add('hidden');
+}
+
+// ---------------- QUESTION RENDER ----------------
+function buildPalette(){
+  const p = document.getElementById('palette'); p.innerHTML='';
+  STATE.questions.forEach(function(q,i){
+    const d = document.createElement('div');
+    d.className='pnum'; d.id='pnum-'+i; d.innerText = i+1;
+    d.style.animationDelay = (i*0.02)+'s';
+    d.onclick=function(){ renderQuestion(i); };
+    p.appendChild(d);
+  });
+}
+function refreshPalette(){
+  STATE.questions.forEach(function(q,i){
+    const el = document.getElementById('pnum-'+i);
+    el.classList.toggle('answered', !!STATE.answers[q.QNo]);
+    el.classList.toggle('current', i===STATE.currentQ);
+  });
+  const answered = Object.keys(STATE.answers).length;
+  const pct = STATE.questions.length ? Math.round((answered/STATE.questions.length)*100) : 0;
+  document.getElementById('progress-fill').style.width = pct+'%';
+}
+function renderRichText(text){
+  if(!text) return '';
+  // escape html
+  let t = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // pipe tables
+  const lines = t.split('\n');
+  let out=[], i=0;
+  while(i<lines.length){
+    if(lines[i].trim().startsWith('|') && lines[i+1] && /^\|?[\s:\-|]+\|?$/.test(lines[i+1].trim())){
+      let tbl='<table>'; let header = lines[i].split('|').map(c=>c.trim()).filter((c,idx,arr)=> !(idx===0&&c==='')&&!(idx===arr.length-1&&c===''));
+      tbl+='<tr>'+header.map(h=>'<th>'+h+'</th>').join('')+'</tr>';
+      i+=2;
+      while(i<lines.length && lines[i].trim().startsWith('|')){
+        let cells = lines[i].split('|').map(c=>c.trim()).filter((c,idx,arr)=> !(idx===0&&c==='')&&!(idx===arr.length-1&&c===''));
+        tbl+='<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
+        i++;
+      }
+      tbl+='</table>'; out.push(tbl);
+    } else { out.push(lines[i]); i++; }
+  }
+  return out.join('<br>');
+}
+function renderQuestion(idx){
+  if(idx<0||idx>=STATE.questions.length) return;
+  // record time spent on previous question
+  if(STATE.qEnterTime){
+    const prevQ = STATE.questions[STATE.currentQ];
+    const dt = (Date.now()-STATE.qEnterTime)/1000;
+    STATE.timeSpent[prevQ.QNo] = (STATE.timeSpent[prevQ.QNo]||0) + dt;
+  }
+  STATE.currentQ = idx; STATE.qEnterTime = Date.now();
+  const q = STATE.questions[idx];
+  let html = '<b>Q'+(idx+1)+'.</b> ' + renderRichText(q.QuestionText);
+  if(q.ImageURL){ html += '<br><img src="'+q.ImageURL+'" alt="question image" loading="lazy">'; }
+  const qtextEl = document.getElementById('q-text');
+  qtextEl.style.animation='none'; void qtextEl.offsetWidth; qtextEl.style.animation='';
+  qtextEl.innerHTML = html;
+  const optsDiv = document.getElementById('q-options'); optsDiv.innerHTML='';
+  ['A','B','C','D'].forEach(function(letter, oi){
+    const val = q['Option'+letter];
+    if(val===undefined || val==='') return;
+    const sel = STATE.answers[q.QNo]===letter;
+    const row = document.createElement('div');
+    row.className = 'opt'+(sel?' selected':'');
+    row.style.animationDelay = (oi*0.04)+'s';
+    row.innerHTML = '<input type="radio" name="opt" '+(sel?'checked':'')+'> <div>'+renderRichText(val)+'</div>';
+    row.onclick = function(){ STATE.answers[q.QNo]=letter; renderQuestion(idx); };
+    optsDiv.appendChild(row);
+  });
+  refreshPalette();
+  renderMathInElement(document.getElementById('q-text'), {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  renderMathInElement(optsDiv, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+function navQuestion(dir){
+  const next = STATE.currentQ + dir;
+  if(next>=0 && next<STATE.questions.length) renderQuestion(next);
+}
+function clearAnswer(){
+  const q = STATE.questions[STATE.currentQ];
+  delete STATE.answers[q.QNo];
+  renderQuestion(STATE.currentQ);
+}
+
+// ---------------- TIMER ----------------
+function startTimer(){
+  updateTimer();
+  STATE.timerInterval = setInterval(updateTimer, 1000);
+}
+function updateTimer(){
+  const remain = Math.max(0, Math.floor((STATE.endEpoch - Date.now())/1000));
+  const m = Math.floor(remain/60), s = remain%60;
+  const el = document.getElementById('timer-display');
+  el.innerText = (m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+  el.classList.toggle('low', remain<=60);
+  if(remain<=0){
+    clearInterval(STATE.timerInterval);
+    doSubmit(true);
+  }
+}
+
+// ---------------- VIOLATIONS / ANTI-CHEAT ----------------
+function logViolation(type){
+  if(!STATE.examActive) return;
+  STATE.violationCount++;
+  const vb = document.getElementById('violation-badge');
+  vb.innerText = 'Violations: '+STATE.violationCount;
+  vb.classList.remove('bump'); void vb.offsetWidth; vb.classList.add('bump');
+  toast(type+' recorded as a violation', 'error');
+  google.script.run.withSuccessHandler(function(res){
+    if(res && res.forceSubmit){
+      showModal({title:'Maximum violations exceeded', body:'Your exam will now be auto-submitted.', okText:'OK'})
+        .then(function(){ doSubmit(true); });
+    }
+  }).recordViolation(STATE.sessionToken, STATE.testId, STATE.name, STATE.roll, type);
+}
+
+document.addEventListener('visibilitychange', function(){
+  if(document.hidden && STATE.examActive) logViolation('Tab switch / minimized');
+});
+window.addEventListener('blur', function(){
+  if(STATE.examActive) logViolation('Window lost focus');
+});
+document.addEventListener('fullscreenchange', function(){
+  if(STATE.examActive && !document.fullscreenElement){
+    logViolation('Exited full-screen');
+    document.getElementById('fs-warning').classList.remove('hidden');
+  }
+});
+document.addEventListener('contextmenu', function(e){ if(STATE.examActive) e.preventDefault(); });
+document.addEventListener('copy', function(e){ if(STATE.examActive){ e.preventDefault(); logViolation('Copy attempt'); } });
+document.addEventListener('cut', function(e){ if(STATE.examActive) e.preventDefault(); });
+document.addEventListener('paste', function(e){ if(STATE.examActive) e.preventDefault(); });
+document.addEventListener('keydown', function(e){
+  if(!STATE.examActive) return;
+  const blocked = (e.key==='PrintScreen') || (e.ctrlKey && ['p','P','c','C','u','U','s','S'].includes(e.key)) ||
+    (e.key==='F12') || (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key));
+  if(blocked){
+    e.preventDefault();
+    if(e.key==='PrintScreen') logViolation('Screenshot key pressed');
+    else logViolation('Restricted key combination');
+  }
+});
+// Note: Browsers cannot fully block OS-level screenshots/screen recording from a web page.
+// The measures above cover in-page copy/print/devtools shortcuts and detect focus/fullscreen loss.
+
+// ---------------- RESULT SCREEN ----------------
+function renderResultScreen(res){
+  showScreen('screen-result');
+  if(res.status==='wait'){
+    document.getElementById('result-wait').classList.remove('hidden');
+    document.getElementById('result-ready').classList.add('hidden');
+    document.getElementById('wait-violations').innerText = 'Violations recorded: '+(res.violationCount||0);
+    return;
+  }
+  document.getElementById('result-wait').classList.add('hidden');
+  document.getElementById('result-ready').classList.remove('hidden');
+  document.getElementById('result-name').innerText = res.name+' ('+res.roll+')';
+  document.getElementById('result-score').innerText = res.finalScore;
+  document.getElementById('result-max').innerText = res.maxScore;
+  document.getElementById('r-correct').innerText = res.correct;
+  document.getElementById('r-wrong').innerText = res.wrong;
+  document.getElementById('r-unattempted').innerText = res.unattempted;
+  document.getElementById('r-violations').innerText = res.violationCount;
+  document.getElementById('r-penalty').innerText = '-'+res.violationPenalty;
+  document.getElementById('r-avgtime').innerText = res.avgTime+'s';
+  const rev = document.getElementById('result-review'); rev.innerHTML='';
+  res.breakdown.forEach(function(q){
+    const given = q.GivenOption;
+    const isCorrect = given && given.toUpperCase()===String(q.CorrectOption).toUpperCase();
+    const tag = !given ? '<span class="tag skip">Unattempted</span>' : (isCorrect ? '<span class="tag correct">Correct</span>' : '<span class="tag wrong">Wrong</span>');
+    const div = document.createElement('div');
+    div.className='review-item';
+    let html = '<b>Q'+q.QNo+'.</b> '+renderRichText(q.QuestionText)+tag;
+    if(q.ImageURL) html += '<br><img src="'+q.ImageURL+'" style="max-width:100%;border-radius:8px;margin-top:6px" loading="lazy">';
+    ['A','B','C','D'].forEach(function(l){
+      const val=q['Option'+l]; if(!val) return;
+      let style='padding:6px 10px;border-radius:6px;margin-top:6px;font-size:.9rem;';
+      if(l===String(q.CorrectOption).toUpperCase()) style+='background:#dcf3e6;';
+      else if(l===given) style+='background:#fdeaea;';
+      html += '<div style="'+style+'">'+l+'. '+renderRichText(val)+(l===String(q.CorrectOption).toUpperCase()?' ✔':'')+(l===given && !isCorrect?' (your answer)':'')+'</div>';
+    });
+    div.innerHTML = html;
+    rev.appendChild(div);
+  });
+  renderMathInElement(rev, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+
+// ---------------- SUBMIT ----------------
+function confirmSubmit(){
+  const unanswered = STATE.questions.length - Object.keys(STATE.answers).length;
+  showModal({
+    title:'Submit exam?',
+    body:'You have '+unanswered+' unanswered question(s). Once submitted you cannot change your answers.',
+    okText:'Submit', cancelText:'Keep working', danger:true
+  }).then(function(ok){ if(ok) doSubmit(false); });
+}
+function doSubmit(auto){
+  if(!STATE.examActive) return;
+  STATE.examActive = false;
+  clearInterval(STATE.timerInterval);
+  // capture time on current question
+  const curQ = STATE.questions[STATE.currentQ];
+  if(curQ){
+    const dt=(Date.now()-STATE.qEnterTime)/1000;
+    STATE.timeSpent[curQ.QNo]=(STATE.timeSpent[curQ.QNo]||0)+dt;
+  }
+  if(document.fullscreenElement && document.exitFullscreen){ document.exitFullscreen().catch(function(){}); }
+  google.script.run.withSuccessHandler(function(res){
+    sessionStorage.removeItem('examSession');
+    document.getElementById('postsubmit-violations').innerText = STATE.violationCount;
+    document.getElementById('postsubmit-msg').innerText = auto ?
+      'Time is up — your exam was auto-submitted.' : 'Your responses have been recorded successfully.';
+    showScreen('screen-postsubmit');
+  }).withFailureHandler(function(err){
+    showModal({title:'Submission error', body:err.message+'. Please contact the administrator.', okText:'OK'});
+  }).submitExam(STATE.sessionToken, STATE.answers, STATE.timeSpent, auto);
+}
+</script>
+</body>
+</html>

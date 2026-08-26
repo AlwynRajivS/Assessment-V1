@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#4a86e8">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<style>
+:root{--primary:#4a86e8;--primary-dark:#3567c4;--primary-light:#7aa8f0;--danger:#e04b4b;--success:#2fa86b;
+  --bg:#f3f5fb;--bg-grad1:#eef2ff;--bg-grad2:#f5f0ff;--card:#fff;--text:#1f2430;--muted:#6b7280;--border:#e5e7eb;
+  --input-bg:#fafbff;--shadow:0 1px 10px rgba(31,36,48,.07);}
+[data-theme="dark"]{--primary:#6d9bfb;--primary-dark:#8ab0ff;--primary-light:#a9c6ff;--danger:#ff6b6b;--success:#3ecf8e;
+  --bg:#12141c;--bg-grad1:#161a29;--bg-grad2:#1c1430;--card:#1b1e2b;--text:#e7e9f3;--muted:#9aa0b4;
+  --border:#2c3040;--input-bg:#20232f;--shadow:0 2px 18px rgba(0,0,0,.4);}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{-webkit-text-size-adjust:100%;}
+body{margin:0;font-family:'Segoe UI',Roboto,Arial,sans-serif;color:var(--text);min-height:100vh;min-height:100dvh;
+  background:linear-gradient(120deg,var(--bg-grad1),var(--bg) 45%,var(--bg-grad2));background-size:200% 200%;
+  animation:bgshift 20s ease infinite;transition:background .4s ease,color .3s ease;touch-action:manipulation;}
+@keyframes bgshift{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;}
+}
+.hidden{display:none !important;}
+input,textarea,select{width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:16px;
+  background:var(--input-bg);color:var(--text);transition:.18s;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--primary);background:var(--card);
+  box-shadow:0 0 0 3px rgba(74,134,232,.15);}
+label{display:block;font-size:.82rem;font-weight:600;color:var(--text);opacity:.85;margin:12px 0 5px;}
+button{cursor:pointer;border:none;border-radius:8px;font-weight:600;padding:11px 16px;font-size:.9rem;
+  transition:transform .15s ease,box-shadow .15s ease,background .15s ease;position:relative;overflow:hidden;
+  font-family:inherit;min-height:40px;}
+button:active{transform:scale(.96);}
+button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
+.ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);
+  animation:rippleAnim .55s ease-out forwards;pointer-events:none;}
+@keyframes rippleAnim{to{transform:scale(2.6);opacity:0;}}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;
+  box-shadow:0 3px 12px rgba(74,134,232,.35);}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(74,134,232,.5);}
+.btn-outline{background:transparent;border:1.5px solid var(--primary);color:var(--primary);}
+.btn-outline:hover{background:rgba(74,134,232,.1);}
+.btn-danger{background:linear-gradient(135deg,var(--danger),#c23434);color:#fff;box-shadow:0 3px 12px rgba(224,75,75,.3);}
+.btn-danger:hover{transform:translateY(-1px);}
+.btn-sm{padding:7px 12px;font-size:.78rem;min-height:34px;}
+.card{background:var(--card);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px;
+  animation:cardIn .45s cubic-bezier(.16,1,.3,1) both;transition:background .3s ease,transform .2s ease,box-shadow .2s ease;}
+.card:hover{box-shadow:0 6px 22px rgba(74,134,232,.12);}
+@keyframes cardIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.msg{padding:8px 12px;border-radius:7px;font-size:.85rem;margin-top:8px;animation:cardIn .3s ease both;}
+.msg.error{background:#fdeaea;color:#a12727;}
+.msg.success{background:#e8f8f0;color:#1e7c4d;}
+[data-theme="dark"] .msg.error{background:#3a1c1c;color:#ff9b9b;}
+[data-theme="dark"] .msg.success{background:#123626;color:#8fe8bd;}
+table{width:100%;border-collapse:collapse;font-size:.85rem;}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;}
+th{background:var(--input-bg);}
+tbody tr{transition:background .15s ease;}
+tbody tr:hover{background:rgba(74,134,232,.06);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:700px){.grid2{grid-template-columns:1fr;}}
+.toolbar-btn{background:var(--input-bg);color:var(--text);border:1px solid var(--border);padding:7px 11px;
+  font-size:.78rem;margin:3px 4px 3px 0;border-radius:6px;transition:.15s;min-height:34px;}
+.toolbar-btn:hover{background:rgba(74,134,232,.15);transform:translateY(-1px);}
+.hint{font-size:.78rem;color:var(--muted);background:var(--input-bg);border-radius:7px;padding:8px 10px;margin-top:6px;line-height:1.5;}
+.preview{border:1px dashed var(--border);border-radius:8px;padding:10px;margin-top:8px;min-height:40px;background:var(--input-bg);
+  transition:.2s;}
+.preview table{margin-top:6px;}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:14px;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;}
+nav.tabs button{background:var(--card);border:1.5px solid var(--border);color:var(--text);white-space:nowrap;transition:.2s;
+  flex-shrink:0;}
+nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border-color:var(--primary);
+  box-shadow:0 3px 10px rgba(74,134,232,.35);}
+.tabpane{animation:cardIn .35s ease both;}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;background:var(--card);
+  border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10;transition:background .3s ease;
+  padding-top:calc(14px + env(safe-area-inset-top));gap:10px;flex-wrap:wrap;}
+.wrap{max-width:1100px;margin:0 auto;padding:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom));}
+.pill{display:inline-block;padding:2px 9px;border-radius:10px;font-size:.72rem;font-weight:700;}
+.pill.active{background:#dcf3e6;color:#1e7c4d;}
+.pill.inactive{background:#f1f2f4;color:#6b7280;}
+[data-theme="dark"] .pill.active{background:#123626;color:#8fe8bd;}
+[data-theme="dark"] .pill.inactive{background:#242838;color:#9aa0b4;}
+.qcard{border:1px solid var(--border);border-radius:9px;padding:12px;margin-bottom:10px;transition:.2s;animation:cardIn .3s ease both;}
+.qcard:hover{border-color:var(--primary-light);}
+.qcard .qtoolbar{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+.small{font-size:.78rem;color:var(--muted);}
+.stat-mini{display:inline-block;background:var(--input-bg);border-radius:8px;padding:8px 14px;margin:0 8px 8px 0;font-size:.85rem;}
+.theme-toggle{width:38px;height:38px;border-radius:50%;background:var(--input-bg);border:1px solid var(--border);
+  font-size:1.05rem;display:inline-flex;align-items:center;justify-content:center;padding:0;margin-right:8px;
+  transition:transform .25s ease;min-height:38px;}
+.theme-toggle:hover{transform:rotate(15deg) scale(1.08);}
+.site-link{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:600;color:var(--muted);
+  background:var(--input-bg);border:1px solid var(--border);border-radius:16px;padding:7px 13px;text-decoration:none;
+  transition:.2s;margin-right:8px;}
+.site-link:hover{color:var(--primary);border-color:var(--primary);}
+.skeleton{border-radius:8px;background:linear-gradient(90deg,var(--input-bg) 25%,var(--border) 37%,var(--input-bg) 63%);
+  background-size:400% 100%;animation:skeletonWave 1.4s ease infinite;height:14px;margin:6px 0;}
+@keyframes skeletonWave{0%{background-position:100% 50%;}100%{background-position:0 50%;}}
+
+/* Toasts */
+#toast-stack{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:1200;display:flex;flex-direction:column;gap:8px;width:min(92vw,420px);pointer-events:none;}
+.toast{pointer-events:auto;background:var(--card);border:1px solid var(--border);box-shadow:var(--shadow);
+  border-radius:12px;padding:12px 16px;font-size:.86rem;display:flex;align-items:center;gap:10px;
+  animation:toastIn .3s cubic-bezier(.16,1,.3,1) both;}
+.toast.leave{animation:toastOut .25s ease forwards;}
+@keyframes toastIn{from{opacity:0;transform:translateY(12px) scale(.96);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes toastOut{to{opacity:0;transform:translateY(8px) scale(.96);}}
+.toast .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.toast.error .dot{background:var(--danger);}
+.toast.info .dot{background:var(--primary);}
+.toast.success .dot{background:var(--success);}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(20,20,30,.65);z-index:1100;display:flex;align-items:center;
+  justify-content:center;padding:20px;animation:fadeIn .2s ease both;backdrop-filter:blur(3px);}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.modal-box{background:var(--card);border-radius:16px;max-width:420px;width:100%;padding:22px;box-shadow:var(--shadow);
+  animation:modalIn .28s cubic-bezier(.16,1,.3,1) both;}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+.modal-box h3{margin:0 0 8px;font-size:1.08rem;}
+.modal-box p{margin:0 0 18px;font-size:.9rem;color:var(--muted);line-height:1.55;}
+.modal-actions{display:flex;gap:10px;}
+.modal-actions button{flex:1;}
+
+/* Responsive card-style tables for mobile: table -> stacked rows */
+@media(max-width:640px){
+  table.responsive thead{display:none;}
+  table.responsive, table.responsive tbody, table.responsive tr, table.responsive td{display:block;width:100%;}
+  table.responsive tr{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;padding:8px 10px;
+    background:var(--input-bg);}
+  table.responsive td{border:none;padding:5px 2px;display:flex;justify-content:space-between;gap:10px;font-size:.82rem;}
+  table.responsive td::before{content:attr(data-label);font-weight:700;color:var(--muted);flex-shrink:0;}
+}
+
+@media(max-width:480px){
+  .wrap{padding:12px;}
+  .card{padding:14px;border-radius:12px;}
+  .topbar{padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));}
+  button{font-size:.85rem;}
+  nav.tabs button{padding:9px 12px;font-size:.83rem;}
+  .site-link{font-size:.72rem;padding:6px 11px;}
+}
+</style>
+</head>
+<body>
+
+<div id="toast-stack" aria-live="polite"></div>
+<div id="modal-host"></div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="wrap" style="max-width:400px;padding-top:60px;">
+  <div class="card">
+    <div style="display:flex;justify-content:center;margin-bottom:10px">
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
+    </div>
+    <h2 style="text-align:center">Admin Login</h2>
+    <label>Username</label><input id="lg-user" type="text" autocomplete="username">
+    <label>Password</label><input id="lg-pass" type="password" autocomplete="current-password">
+    <button class="btn-primary" style="width:100%;margin-top:16px" id="login-btn" onclick="doLogin()">Login</button>
+    <div id="login-msg"></div>
+    <div style="text-align:center;margin-top:14px">
+      <a class="site-link" href="index.html" target="_top">🏠 Open Exam Site</a>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="app-screen" class="hidden">
+  <div class="topbar">
+    <strong>📋 Assessment Admin</strong>
+    <div style="display:flex;align-items:center;flex-wrap:wrap;">
+      <a class="site-link" href="EXAM_SITE_HOME" target="_top">🏠 Exam Site</a>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark / light mode">🌙</button>
+      <span class="small" id="admin-name"></span>
+      <button class="btn-outline btn-sm" style="margin-left:8px" onclick="logout()">Logout</button>
+    </div>
+  </div>
+  <div class="wrap">
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="create">Create Test</button>
+      <button class="tab-btn" data-tab="questions">Add Questions</button>
+      <button class="tab-btn" data-tab="manage">Manage Tests / QR</button>
+      <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+      <button class="tab-btn" data-tab="reports">Reports</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+    </nav>
+
+    <!-- TAB: CREATE TEST -->
+    <div id="tab-create" class="tabpane">
+      <div class="card">
+        <h2>Create / Update Test</h2>
+        <input type="hidden" id="ct-testid">
+        <div class="grid2">
+          <div><label>Test Title</label><input id="ct-title" placeholder="e.g. Mid-Term Physics Test"></div>
+          <div><label>Duration (minutes)</label><input id="ct-duration" type="number" value="30"></div>
+          <div><label>Start Date & Time</label><input id="ct-start" type="datetime-local"></div>
+          <div><label>End Date & Time</label><input id="ct-end" type="datetime-local"></div>
+          <div><label>Negative Marking</label>
+            <select id="ct-negmark"><option value="false">No</option><option value="true">Yes</option></select></div>
+          <div><label>Negative Mark Value (per wrong answer)</label><input id="ct-negval" type="number" value="0" step="0.25"></div>
+          <div><label>Violation Penalty (marks per violation)</label><input id="ct-violpenalty" type="number" value="1" step="0.5"></div>
+          <div><label>Max Violations Before Auto-Submit</label><input id="ct-maxviol" type="number" value="5"></div>
+          <div><label>Shuffle Questions per Candidate</label>
+            <select id="ct-shuffle"><option value="false">No</option><option value="true">Yes</option></select></div>
+          <div><label>Result Release</label>
+            <select id="ct-release"><option value="AUTO">Auto (after End Date/Time)</option><option value="MANUAL">Manual (admin toggles)</option></select></div>
+        </div>
+        <label>Instructions for Candidates</label>
+        <div>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('ct-instructions','eq-inline')">Insert Inline Equation</button>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('ct-instructions','eq-block')">Insert Block Equation</button>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('ct-instructions','table')">Insert Table</button>
+        </div>
+        <textarea id="ct-instructions" rows="6" onfocus="lastFocused='ct-instructions'" placeholder="Read all questions carefully. No negative marking unless stated..."></textarea>
+        <div class="hint">You can type equations like <code>$x^2+y^2=z^2$</code> or <code>$$\frac{a}{b}$$</code>, and tables using the pipe format below. Use the buttons to insert a starter template into the field you last clicked.</div>
+        <button class="btn-primary" style="margin-top:14px" id="save-test-btn" onclick="saveTest()">Save Test</button>
+        <div id="ct-msg"></div>
+      </div>
+    </div>
+
+    <!-- TAB: ADD QUESTIONS -->
+    <div id="tab-questions" class="tabpane hidden">
+      <div class="card">
+        <h2>Add Questions</h2>
+        <label>Select Test</label>
+        <select id="aq-testid" onchange="loadQuestionsList()"></select>
+
+        <label>Question Text</label>
+        <div>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('aq-qtext','eq-inline')">Insert Inline Equation</button>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('aq-qtext','eq-block')">Insert Block Equation</button>
+          <button type="button" class="toolbar-btn" onclick="insertTemplate('aq-qtext','table')">Insert Table</button>
+        </div>
+        <textarea id="aq-qtext" rows="3" onfocus="lastFocused='aq-qtext'" oninput="livePreview()" placeholder="What is the value of $x$ if $2x+3=11$?"></textarea>
+        <div class="hint">You can type equations like <code>$x^2+y^2=z^2$</code> or <code>$$\frac{a}{b}$$</code>, and tables using the pipe format below. Use the buttons to insert a starter template into the field you last clicked.</div>
+
+        <label>Image URL (optional — direct image link)</label>
+        <input id="aq-image" placeholder="https://..." oninput="livePreview()">
+
+        <div class="grid2">
+          <div><label>Option A</label><textarea id="aq-a" rows="2" onfocus="lastFocused='aq-a'" oninput="livePreview()"></textarea></div>
+          <div><label>Option B</label><textarea id="aq-b" rows="2" onfocus="lastFocused='aq-b'" oninput="livePreview()"></textarea></div>
+          <div><label>Option C</label><textarea id="aq-c" rows="2" onfocus="lastFocused='aq-c'" oninput="livePreview()"></textarea></div>
+          <div><label>Option D</label><textarea id="aq-d" rows="2" onfocus="lastFocused='aq-d'" oninput="livePreview()"></textarea></div>
+        </div>
+        <div class="grid2">
+          <div><label>Correct Option</label>
+            <select id="aq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+          <div><label>Marks</label><input id="aq-marks" type="number" value="1" step="0.5"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <button class="toolbar-btn" type="button" onclick="insertTemplate('aq-qtext','eq-inline')">Quick: $ $</button>
+          <button class="btn-primary" id="add-q-btn" onclick="submitQuestion()">Add Question</button>
+        </div>
+        <label style="margin-top:14px">Live Preview</label>
+        <div class="preview" id="aq-preview"></div>
+        <div id="aq-msg"></div>
+      </div>
+
+      <div class="card">
+        <h2>Questions in this Test (<span id="q-count">0</span>)</h2>
+        <div id="questions-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: MANAGE / QR -->
+    <div id="tab-manage" class="tabpane hidden">
+      <div class="card">
+        <h2>All Tests</h2>
+        <div id="manage-list"></div>
+      </div>
+      <div class="card hidden" id="qr-card">
+        <h2>Exam Link & QR Code</h2>
+        <p class="small" id="qr-testid"></p>
+        <img id="qr-img" style="border:1px solid var(--border);border-radius:8px;max-width:220px;width:100%" width="220">
+        <p><input id="qr-link" readonly></p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-outline btn-sm" onclick="copyLink()">Copy Link</button>
+          <a id="qr-open" class="btn-outline btn-sm" style="text-decoration:none;display:inline-flex;align-items:center" href="#" target="_blank">Open Link</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: LEADERBOARD -->
+    <div id="tab-leaderboard" class="tabpane hidden">
+      <div class="card">
+        <h2>Live Leaderboard</h2>
+        <label>Select Test</label>
+        <select id="lb-testid" onchange="loadLeaderboard()"></select>
+        <p class="small">Auto-refreshes every 10 seconds while this tab is open. Ranked by Score → fewer Violations → lower Avg Time.</p>
+        <div style="overflow-x:auto"><table id="lb-table" class="responsive">
+          <thead><tr><th>Rank</th><th>Name</th><th>Roll</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Violations</th><th>Avg Time (s)</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- TAB: REPORTS -->
+    <div id="tab-reports" class="tabpane hidden">
+      <div class="card">
+        <h2>Reports</h2>
+        <label>Select Test</label>
+        <select id="rp-testid"></select>
+        <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="loadReport()">Generate Report</button>
+          <button class="btn-outline" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <div id="rp-stats" style="margin-top:12px"></div>
+        <div style="overflow-x:auto;margin-top:10px"><table id="rp-table" class="responsive">
+          <thead><tr><th>Name</th><th>Roll</th><th>Status</th><th>Correct</th><th>Wrong</th><th>Unattempted</th>
+          <th>Raw Score</th><th>Violations</th><th>Penalty</th><th>Final Score</th><th>Max</th><th>Avg Time(s)</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- TAB: SETTINGS -->
+    <div id="tab-settings" class="tabpane hidden">
+      <div class="card">
+        <h2>Change Admin Password</h2>
+        <label>Old Password</label><input id="pw-old" type="password" autocomplete="current-password">
+        <label>New Password</label><input id="pw-new" type="password" autocomplete="new-password">
+        <button class="btn-primary" style="margin-top:12px" onclick="changePw()">Update Password</button>
+        <div id="pw-msg"></div>
+      </div>
+      <div class="card">
+        <h2>Deployment</h2>
+        <p class="small">This admin console and the candidate exam site both talk to the same Apps
+          Script Web App deployment:</p>
+        <input id="deployment-url" readonly>
+        <button class="btn-outline btn-sm" style="margin-top:8px" onclick="copyDeployUrl()">Copy Web App URL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// GAS deployment URL — MUST be your Apps Script Web App /exec URL.
+// This is the ONLY place this page talks to Google; everything else
+// below is plain client-side JS that works from any host (GitHub Pages,
+// localhost, a plain double-clicked file, etc.)
+// ============================================================
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyONXzwfTowmG5soc6Wmo-MXno5kz1Kpifw7R4fluiK3B-J6eaZv1xnzl72SC81plRWMA/exec';
+document.querySelectorAll('a[href="EXAM_SITE_HOME"]').forEach(function(a){ a.href = SCRIPT_URL; });
+
+// ------------------------------------------------------------
+// google.script.run POLYFILL
+// ------------------------------------------------------------
+// `google.script.run` is an object Google itself injects into pages it
+// serves via HtmlService — it does NOT exist on pages hosted elsewhere
+// (this is exactly why the "google is not defined" error happened).
+// This polyfill recreates the same chainable API
+// (google.script.run.withSuccessHandler(cb).withFailureHandler(cb).fnName(args))
+// so none of the admin code below needed to change, but backs it with a
+// fetch() POST to the Apps Script Web App's doPost() JSON router instead.
+//
+// Requires: Code.gs must contain the doPost(e) dispatcher (see the
+// updated Code.gs), and the deployment's "Who has access" must be set
+// to "Anyone" for this to work cross-origin without a Google login.
+(function () {
+  function makeRunner(successHandler, failureHandler) {
+    return new Proxy({}, {
+      get: function (target, fnName) {
+        if (fnName === 'withSuccessHandler') {
+          return function (cb) { return makeRunner(cb, failureHandler); };
+        }
+        if (fnName === 'withFailureHandler') {
+          return function (cb) { return makeRunner(successHandler, cb); };
+        }
+        // Anything else is treated as the remote function name to call.
+        return function () {
+          const args = Array.prototype.slice.call(arguments);
+          fetch(SCRIPT_URL, {
+            method: 'POST',
+            // text/plain keeps this a CORS "simple request" (no preflight),
+            // which Apps Script web apps can't answer. The server still
+            // JSON.parses the raw body regardless of this header.
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify({ fn: fnName, args: args })
+          })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+              if (data && data.__gasError) {
+                if (failureHandler) failureHandler({ message: data.__gasError });
+              } else if (successHandler) {
+                successHandler(data ? data.__result : undefined);
+              }
+            })
+            .catch(function (err) {
+              if (failureHandler) failureHandler({ message: (err && err.message) || 'Network error contacting server' });
+            });
+        };
+      }
+    });
+  }
+  window.google = window.google || {};
+  window.google.script = { run: makeRunner(null, null) };
+})();
+
+let TOKEN = '';
+let lastFocused = 'ct-instructions';
+let reportRows = [];
+let lbInterval = null;
+
+// ---------- THEME ----------
+function initTheme(){
+  let saved = localStorage.getItem('ap-theme');
+  if(!saved){ saved = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
+  applyTheme(saved);
+}
+function applyTheme(mode){
+  document.documentElement.setAttribute('data-theme', mode);
+  const icon = mode==='dark' ? '☀️' : '🌙';
+  document.querySelectorAll('.theme-toggle').forEach(function(el){ el.innerText = icon; });
+  localStorage.setItem('ap-theme', mode);
+}
+function toggleTheme(){
+  const cur = document.documentElement.getAttribute('data-theme');
+  applyTheme(cur==='dark' ? 'light' : 'dark');
+}
+window.addEventListener('load', function(){
+  initTheme();
+  initRipples();
+  const dep = document.getElementById('deployment-url');
+  if(dep) dep.value = SCRIPT_URL;
+});
+
+// ---------- MICRO-INTERACTIONS ----------
+function initRipples(){
+  document.addEventListener('pointerdown', function(e){
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const size = Math.max(rect.width, rect.height);
+    const r = document.createElement('span');
+    r.className='ripple';
+    r.style.width = r.style.height = size+'px';
+    r.style.left = (e.clientX-rect.left-size/2)+'px';
+    r.style.top = (e.clientY-rect.top-size/2)+'px';
+    btn.appendChild(r);
+    setTimeout(function(){ r.remove(); }, 600);
+  });
+}
+
+// ---------- TOASTS / MODAL ----------
+function toast(text, type){
+  type = type || 'info';
+  const stack = document.getElementById('toast-stack');
+  const el = document.createElement('div');
+  el.className = 'toast '+type;
+  el.innerHTML = '<span class="dot"></span><span>'+text+'</span>';
+  stack.appendChild(el);
+  setTimeout(function(){
+    el.classList.add('leave');
+    setTimeout(function(){ el.remove(); }, 250);
+  }, 3200);
+}
+function showModal(opts){
+  return new Promise(function(resolve){
+    const host = document.getElementById('modal-host');
+    const backdrop = document.createElement('div');
+    backdrop.className = 'modal-backdrop';
+    backdrop.innerHTML =
+      '<div class="modal-box">'+
+        '<h3>'+opts.title+'</h3>'+
+        '<p>'+opts.body+'</p>'+
+        '<div class="modal-actions">'+
+          (opts.cancelText ? '<button class="btn-outline" id="modal-cancel">'+opts.cancelText+'</button>' : '')+
+          '<button class="'+(opts.danger?'btn-danger':'btn-primary')+'" id="modal-ok">'+(opts.okText||'OK')+'</button>'+
+        '</div>'+
+      '</div>';
+    host.appendChild(backdrop);
+    function close(result){ backdrop.remove(); resolve(result); }
+    backdrop.querySelector('#modal-ok').onclick = function(){ close(true); };
+    const cancelBtn = backdrop.querySelector('#modal-cancel');
+    if(cancelBtn) cancelBtn.onclick = function(){ close(false); };
+    backdrop.addEventListener('click', function(e){ if(e.target===backdrop && opts.cancelText) close(false); });
+  });
+}
+function confirmModal(title, body){
+  return showModal({title:title, body:body, okText:'Confirm', cancelText:'Cancel', danger:true});
+}
+
+// ---------- LOGIN ----------
+function doLogin(){
+  const u = document.getElementById('lg-user').value.trim();
+  const p = document.getElementById('lg-pass').value;
+  document.getElementById('login-msg').innerHTML = '';
+  const btn = document.getElementById('login-btn');
+  btn.disabled = true;
+  google.script.run.withSuccessHandler(function(res){
+    btn.disabled = false;
+    if(!res.success){ document.getElementById('login-msg').innerHTML='<div class="msg error">'+res.message+'</div>'; return; }
+    TOKEN = res.token;
+    document.getElementById('admin-name').innerText = res.name;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app-screen').classList.remove('hidden');
+    toast('Welcome back, '+res.name, 'success');
+    refreshTestDropdowns();
+    loadManageList();
+  }).withFailureHandler(function(err){
+    btn.disabled = false;
+    document.getElementById('login-msg').innerHTML='<div class="msg error">'+err.message+'</div>';
+  }).adminLogin(u,p);
+}
+function logout(){ location.reload(); }
+
+// ---------- TABS ----------
+document.addEventListener('click', function(e){
+  if(e.target.classList.contains('tab-btn')){
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    e.target.classList.add('active');
+    document.querySelectorAll('.tabpane').forEach(p=>p.classList.add('hidden'));
+    document.getElementById('tab-'+e.target.dataset.tab).classList.remove('hidden');
+    if(e.target.dataset.tab==='manage') loadManageList();
+    if(e.target.dataset.tab==='leaderboard'){ startLeaderboardAuto(); } else { clearInterval(lbInterval); }
+  }
+});
+
+// ---------- TEMPLATE INSERT HELPERS ----------
+const TEMPLATES = {
+  'eq-inline': ' $x^2+y^2=z^2$ ',
+  'eq-block': '\n$$\\frac{a}{b} = c$$\n',
+  'table': '\n| Column 1 | Column 2 | Column 3 |\n| --- | --- | --- |\n| A | B | C |\n'
+};
+function insertTemplate(fieldId, type){
+  const field = document.getElementById(fieldId);
+  const txt = TEMPLATES[type];
+  const start = field.selectionStart || field.value.length;
+  const end = field.selectionEnd || field.value.length;
+  field.value = field.value.slice(0,start) + txt + field.value.slice(end);
+  field.focus();
+  field.selectionStart = field.selectionEnd = start + txt.length;
+  if(fieldId.indexOf('aq-')===0) livePreview();
+}
+
+// ---------- RICH TEXT RENDER (shared logic with user page) ----------
+function renderRichText(text){
+  if(!text) return '';
+  let t = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const lines = t.split('\n');
+  let out=[], i=0;
+  while(i<lines.length){
+    if(lines[i].trim().startsWith('|') && lines[i+1] && /^\|?[\s:\-|]+\|?$/.test(lines[i+1].trim())){
+      let tbl='<table>'; let header = lines[i].split('|').map(c=>c.trim()).filter((c,idx,arr)=> !(idx===0&&c==='')&&!(idx===arr.length-1&&c===''));
+      tbl+='<tr>'+header.map(h=>'<th>'+h+'</th>').join('')+'</tr>';
+      i+=2;
+      while(i<lines.length && lines[i].trim().startsWith('|')){
+        let cells = lines[i].split('|').map(c=>c.trim()).filter((c,idx,arr)=> !(idx===0&&c==='')&&!(idx===arr.length-1&&c===''));
+        tbl+='<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>';
+        i++;
+      }
+      tbl+='</table>'; out.push(tbl);
+    } else { out.push(lines[i]); i++; }
+  }
+  return out.join('<br>');
+}
+function livePreview(){
+  const q = document.getElementById('aq-qtext').value;
+  const img = document.getElementById('aq-image').value;
+  let html = renderRichText(q);
+  if(img) html += '<br><img src="'+img+'" style="max-width:100%;max-height:180px;border-radius:6px;margin-top:6px" loading="lazy">';
+  ['a','b','c','d'].forEach(function(l){
+    const v = document.getElementById('aq-'+l).value;
+    if(v) html += '<div style="margin-top:4px">'+l.toUpperCase()+'. '+renderRichText(v)+'</div>';
+  });
+  const prev = document.getElementById('aq-preview');
+  prev.innerHTML = html || '<span class="small">Preview appears here...</span>';
+  renderMathInElement(prev, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+
+// ---------- CREATE / SAVE TEST ----------
+function saveTest(){
+  const test = {
+    TestID: document.getElementById('ct-testid').value || '',
+    Title: document.getElementById('ct-title').value,
+    DurationMinutes: Number(document.getElementById('ct-duration').value),
+    StartDateTime: document.getElementById('ct-start').value,
+    EndDateTime: document.getElementById('ct-end').value,
+    NegativeMarking: document.getElementById('ct-negmark').value,
+    NegativeMarkValue: Number(document.getElementById('ct-negval').value),
+    ViolationPenaltyMarks: Number(document.getElementById('ct-violpenalty').value),
+    MaxViolationsAllowed: Number(document.getElementById('ct-maxviol').value),
+    ShuffleQuestions: document.getElementById('ct-shuffle').value,
+    ResultReleaseMode: document.getElementById('ct-release').value,
+    Instructions: document.getElementById('ct-instructions').value,
+    Status: 'ACTIVE'
+  };
+  if(!test.Title){ document.getElementById('ct-msg').innerHTML='<div class="msg error">Title is required</div>'; return; }
+  const btn = document.getElementById('save-test-btn');
+  btn.disabled = true;
+  google.script.run.withSuccessHandler(function(res){
+    btn.disabled = false;
+    document.getElementById('ct-msg').innerHTML = '<div class="msg success">Saved! Test ID: '+res.testId+'</div>';
+    document.getElementById('ct-testid').value = res.testId;
+    toast('Test saved successfully', 'success');
+    refreshTestDropdowns();
+  }).withFailureHandler(function(err){
+    btn.disabled = false;
+    document.getElementById('ct-msg').innerHTML='<div class="msg error">'+err.message+'</div>';
+  }).createOrUpdateTest(TOKEN, test);
+}
+
+function refreshTestDropdowns(){
+  google.script.run.withSuccessHandler(function(tests){
+    ['aq-testid','lb-testid','rp-testid'].forEach(function(id){
+      const sel = document.getElementById(id);
+      const cur = sel.value;
+      sel.innerHTML = tests.map(t=>'<option value="'+t.TestID+'">'+t.Title+' ('+t.TestID+')</option>').join('');
+      if(cur) sel.value = cur;
+    });
+    if(document.getElementById('aq-testid').value) loadQuestionsList();
+  }).getAllTests(TOKEN);
+}
+
+// ---------- QUESTIONS ----------
+function submitQuestion(){
+  const testId = document.getElementById('aq-testid').value;
+  if(!testId){ toast('Please create/select a test first.', 'error'); return; }
+  const q = {
+    TestID: testId,
+    QuestionText: document.getElementById('aq-qtext').value,
+    ImageURL: document.getElementById('aq-image').value,
+    OptionA: document.getElementById('aq-a').value,
+    OptionB: document.getElementById('aq-b').value,
+    OptionC: document.getElementById('aq-c').value,
+    OptionD: document.getElementById('aq-d').value,
+    CorrectOption: document.getElementById('aq-correct').value,
+    Marks: Number(document.getElementById('aq-marks').value)
+  };
+  if(!q.QuestionText || !q.OptionA || !q.OptionB){
+    document.getElementById('aq-msg').innerHTML='<div class="msg error">Question text and at least options A & B are required.</div>'; return;
+  }
+  const btn = document.getElementById('add-q-btn');
+  btn.disabled = true;
+  google.script.run.withSuccessHandler(function(res){
+    btn.disabled = false;
+    document.getElementById('aq-msg').innerHTML='<div class="msg success">Question #'+res.qno+' added.</div>';
+    ['aq-qtext','aq-image','aq-a','aq-b','aq-c','aq-d'].forEach(id=>document.getElementById(id).value='');
+    livePreview();
+    loadQuestionsList();
+  }).withFailureHandler(function(err){
+    btn.disabled = false;
+    document.getElementById('aq-msg').innerHTML='<div class="msg error">'+err.message+'</div>';
+  }).addQuestion(TOKEN, q);
+}
+
+function loadQuestionsList(){
+  const testId = document.getElementById('aq-testid').value;
+  if(!testId) return;
+  const div = document.getElementById('questions-list');
+  div.innerHTML = '<div class="skeleton" style="width:90%"></div><div class="skeleton" style="width:70%"></div>';
+  google.script.run.withSuccessHandler(function(list){
+    document.getElementById('q-count').innerText = list.length;
+    div.innerHTML='';
+    list.forEach(function(q){
+      const c = document.createElement('div'); c.className='qcard';
+      c.innerHTML = '<b>Q'+q.QNo+'.</b> '+renderRichText(q.QuestionText)+
+        '<div class="small">Correct: '+q.CorrectOption+' | Marks: '+q.Marks+'</div>'+
+        '<div class="qtoolbar"><button class="btn-danger btn-sm" onclick="removeQuestion(\''+testId+'\','+q.QNo+')">Delete</button></div>';
+      div.appendChild(c);
+    });
+    if(!list.length) div.innerHTML = '<p class="small">No questions yet — add your first one above.</p>';
+    renderMathInElement(div, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+  }).getQuestionsForAdmin(TOKEN, testId);
+}
+function removeQuestion(testId, qno){
+  confirmModal('Delete question '+qno+'?', 'This cannot be undone.').then(function(ok){
+    if(!ok) return;
+    google.script.run.withSuccessHandler(function(){ toast('Question deleted', 'success'); loadQuestionsList(); }).deleteQuestion(TOKEN, testId, qno);
+  });
+}
+
+// ---------- MANAGE / QR ----------
+function loadManageList(){
+  const div = document.getElementById('manage-list');
+  div.innerHTML = '<div class="skeleton" style="width:95%"></div><div class="skeleton" style="width:80%"></div>';
+  google.script.run.withSuccessHandler(function(tests){
+    div.innerHTML='';
+    if(!tests.length){ div.innerHTML = '<p class="small">No tests created yet.</p>'; return; }
+    tests.forEach(function(t){
+      const row = document.createElement('div'); row.className='qcard';
+      row.innerHTML =
+        '<b>'+t.Title+'</b> <span class="pill '+(t.Status==='ACTIVE'?'active':'inactive')+'">'+t.Status+'</span><br>'+
+        '<span class="small">ID: '+t.TestID+' | Duration: '+t.DurationMinutes+' min | Ends: '+t.EndDateTime+'</span><br>'+
+        '<span class="small">Result Visible Override: '+t.ResultVisibleOverride+'</span>'+
+        '<div class="qtoolbar">'+
+        '<button class="btn-outline btn-sm" onclick="toggleStatus(\''+t.TestID+'\',\''+t.Status+'\')">'+(t.Status==='ACTIVE'?'Deactivate':'Activate')+'</button>'+
+        '<button class="btn-outline btn-sm" onclick="toggleResultVisible(\''+t.TestID+'\',\''+t.ResultVisibleOverride+'\')">'+(String(t.ResultVisibleOverride)==='true'?'Hide Result':'Force Show Result')+'</button>'+
+        '<button class="btn-primary btn-sm" onclick="showQr(\''+t.TestID+'\')">Get Link & QR</button>'+
+        '<button class="btn-danger btn-sm" onclick="removeTest(\''+t.TestID+'\')">Delete</button>'+
+        '</div>';
+      div.appendChild(row);
+    });
+  }).getAllTests(TOKEN);
+}
+function toggleStatus(testId, current){
+  const next = current==='ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+  google.script.run.withSuccessHandler(function(){ toast('Status updated', 'success'); loadManageList(); }).setTestField(TOKEN, testId, 'Status', next);
+}
+function toggleResultVisible(testId, current){
+  const next = String(current)==='true' ? 'false' : 'true';
+  google.script.run.withSuccessHandler(function(){ toast('Result visibility updated', 'success'); loadManageList(); }).setTestField(TOKEN, testId, 'ResultVisibleOverride', next);
+}
+function removeTest(testId){
+  confirmModal('Delete this test permanently?', 'Questions remain in storage but will be orphaned from any test.').then(function(ok){
+    if(!ok) return;
+    google.script.run.withSuccessHandler(function(){ toast('Test deleted', 'success'); loadManageList(); }).deleteTest(TOKEN, testId);
+  });
+}
+function showQr(testId){
+  google.script.run.withSuccessHandler(function(res){
+    document.getElementById('qr-card').classList.remove('hidden');
+    document.getElementById('qr-testid').innerText = 'Test ID: '+res.testId;
+    document.getElementById('qr-img').src = res.qr;
+    document.getElementById('qr-link').value = res.link;
+    document.getElementById('qr-open').href = res.link;
+    document.getElementById('qr-card').scrollIntoView({behavior:'smooth', block:'center'});
+  }).getExamLinkAndQr(TOKEN, testId);
+}
+function copyLink(){
+  const el = document.getElementById('qr-link'); el.select(); document.execCommand('copy');
+  toast('Link copied', 'success');
+}
+function copyDeployUrl(){
+  const el = document.getElementById('deployment-url'); el.select(); document.execCommand('copy');
+  toast('Web app URL copied', 'success');
+}
+
+// ---------- LEADERBOARD ----------
+function loadLeaderboard(){
+  const testId = document.getElementById('lb-testid').value;
+  if(!testId) return;
+  google.script.run.withSuccessHandler(function(rows){
+    const tb = document.querySelector('#lb-table tbody'); tb.innerHTML='';
+    if(!rows.length){ tb.innerHTML = '<tr><td colspan="8" class="small">No submissions yet.</td></tr>'; return; }
+    rows.forEach(function(r){
+      tb.innerHTML +=
+        '<tr>'+
+        '<td data-label="Rank">'+r.rank+'</td>'+
+        '<td data-label="Name">'+r.name+'</td>'+
+        '<td data-label="Roll">'+r.roll+'</td>'+
+        '<td data-label="Score">'+r.score+'/'+r.maxScore+'</td>'+
+        '<td data-label="Correct">'+r.correct+'</td>'+
+        '<td data-label="Wrong">'+r.wrong+'</td>'+
+        '<td data-label="Violations">'+r.violations+'</td>'+
+        '<td data-label="Avg Time (s)">'+r.avgTime+'</td>'+
+        '</tr>';
+    });
+  }).getLeaderboard(testId);
+}
+function startLeaderboardAuto(){
+  clearInterval(lbInterval);
+  loadLeaderboard();
+  lbInterval = setInterval(loadLeaderboard, 10000);
+}
+
+// ---------- REPORTS ----------
+function loadReport(){
+  const testId = document.getElementById('rp-testid').value;
+  if(!testId) return;
+  google.script.run.withSuccessHandler(function(rows){
+    reportRows = rows;
+    const tb = document.querySelector('#rp-table tbody'); tb.innerHTML='';
+    let totalScore=0, submitted=0;
+    if(!rows.length){ tb.innerHTML = '<tr><td colspan="12" class="small">No candidates yet.</td></tr>'; }
+    rows.forEach(function(r){
+      if(r.status==='SUBMITTED'||r.status==='AUTO_SUBMITTED'){ submitted++; totalScore += Number(r.finalScore||0); }
+      tb.innerHTML +=
+        '<tr>'+
+        '<td data-label="Name">'+r.name+'</td>'+
+        '<td data-label="Roll">'+r.roll+'</td>'+
+        '<td data-label="Status">'+r.status+'</td>'+
+        '<td data-label="Correct">'+r.correct+'</td>'+
+        '<td data-label="Wrong">'+r.wrong+'</td>'+
+        '<td data-label="Unattempted">'+r.unattempted+'</td>'+
+        '<td data-label="Raw Score">'+r.rawScore+'</td>'+
+        '<td data-label="Violations">'+r.violations+'</td>'+
+        '<td data-label="Penalty">'+r.violationPenalty+'</td>'+
+        '<td data-label="Final Score">'+r.finalScore+'</td>'+
+        '<td data-label="Max">'+r.maxScore+'</td>'+
+        '<td data-label="Avg Time(s)">'+r.avgTime+'</td>'+
+        '</tr>';
+    });
+    document.getElementById('rp-stats').innerHTML =
+      '<span class="stat-mini">Total Candidates: '+rows.length+'</span>'+
+      '<span class="stat-mini">Submitted: '+submitted+'</span>'+
+      '<span class="stat-mini">Avg Score: '+(submitted?(totalScore/submitted).toFixed(2):0)+'</span>';
+  }).generateReport(TOKEN, testId);
+}
+function exportCSV(){
+  if(!reportRows.length){ toast('Generate the report first.', 'error'); return; }
+  const headers = ['Name','Roll','Status','Correct','Wrong','Unattempted','RawScore','Violations','ViolationPenalty','FinalScore','MaxScore','AvgTime'];
+  const keys = ['name','roll','status','correct','wrong','unattempted','rawScore','violations','violationPenalty','finalScore','maxScore','avgTime'];
+  let csv = headers.join(',')+'\n';
+  reportRows.forEach(function(r){ csv += keys.map(k=>('"'+String(r[k]!==undefined?r[k]:'')+'"')).join(',')+'\n'; });
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'report_'+document.getElementById('rp-testid').value+'.csv';
+  a.click();
+  toast('CSV exported', 'success');
+}
+
+// ---------- SETTINGS ----------
+function changePw(){
+  const oldP = document.getElementById('pw-old').value;
+  const newP = document.getElementById('pw-new').value;
+  google.script.run.withSuccessHandler(function(res){
+    document.getElementById('pw-msg').innerHTML = res.success ?
+      '<div class="msg success">Password updated.</div>' : '<div class="msg error">'+res.message+'</div>';
+    if(res.success){ toast('Password updated', 'success'); document.getElementById('pw-old').value=''; document.getElementById('pw-new').value=''; }
+  }).changeAdminPassword(TOKEN, oldP, newP);
+}
+</script>
+</body>
+</html>
