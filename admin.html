@@ -12,6 +12,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+<!-- File-parsing libs for AI Generate uploads (PDF / Word / PowerPoint) — all parsing happens client-side in the browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 :root{--primary:#4a86e8;--primary-dark:#3567c4;--primary-light:#7aa8f0;--danger:#e04b4b;--success:#2fa86b;
   --bg:#f3f5fb;--bg-grad1:#eef2ff;--bg-grad2:#f5f0ff;--card:#fff;--text:#1f2430;--muted:#6b7280;--border:#e5e7eb;
@@ -193,6 +197,7 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
     <nav class="tabs">
       <button class="tab-btn active" data-tab="create">Create Test</button>
       <button class="tab-btn" data-tab="questions">Add Questions</button>
+      <button class="tab-btn" data-tab="aigen">AI Generate</button>
       <button class="tab-btn" data-tab="manage">Manage Tests</button>
       <button class="tab-btn" data-tab="analytics">Analytics</button>
       <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
@@ -278,6 +283,66 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
       <div class="card">
         <h2>Questions in this Test (<span id="q-count">0</span>)</h2>
         <div id="questions-list"></div>
+      </div>
+    </div>
+
+    <!-- TAB: AI GENERATE -->
+    <div id="tab-aigen" class="tabpane hidden">
+      <div class="card">
+        <h2>🤖 AI Question Generator</h2>
+        <p class="small">Generate MCQs from a topic or study material using the Groq API. Pick how many questions and which Bloom's Taxonomy levels you want, then review and choose which ones to add to your test.</p>
+
+        <label>Select Test</label>
+        <select id="aigen-testid"></select>
+
+        <label>Groq API Key</label>
+        <input id="aigen-apikey" type="password" placeholder="gsk_..." oninput="saveGroqKey()">
+        <div class="hint">Your key is stored only in this browser (localStorage) and is sent directly from your browser to Groq — it never touches the assessment backend. Get a free key at console.groq.com/keys.</div>
+
+        <label>Model</label>
+        <select id="aigen-model">
+          <option value="openai/gpt-oss-120b">GPT-OSS 120B (recommended)</option>
+          <option value="openai/gpt-oss-20b">GPT-OSS 20B (fast)</option>
+          <option value="qwen/qwen3.6-27b">Qwen3.6 27B</option>
+          <option value="groq/compound">Groq Compound</option>
+        </select>
+        <div class="hint">Groq periodically retires models — if a model here ever errors as "does not exist or you do not have access", open the Groq Console → Playground to see which model IDs are currently live on your plan, then pick another option from this list.</div>
+
+        <label>Topic / Instructions</label>
+        <textarea id="aigen-topic" rows="2" placeholder="e.g. Newton's Laws of Motion, Photosynthesis, Chapter 4 - Data Structures..."></textarea>
+
+        <label>Source Material (optional — paste text or upload a file)</label>
+        <textarea id="aigen-material" rows="6" placeholder="Paste notes, textbook excerpt, or article text here. If provided, questions will be generated strictly from this content."></textarea>
+        <input id="aigen-file" type="file" accept=".txt,.md,.csv,.pdf,.docx,.pptx" style="margin-top:6px" onchange="handleMaterialFile(event)">
+        <div class="hint">Supports .txt, .md, .csv, .pdf, .docx (Word) and .pptx (PowerPoint) — text is extracted right here in your browser, nothing is uploaded anywhere. Legacy .doc/.ppt aren't supported; re-save as .docx/.pptx first, or paste the text directly.</div>
+        <div id="aigen-file-status"></div>
+
+        <div class="grid2" style="margin-top:10px">
+          <div><label>Number of Questions</label><input id="aigen-count" type="number" value="5" min="1" max="30"></div>
+          <div><label>Marks per Question</label><input id="aigen-marks" type="number" value="1" step="0.5"></div>
+        </div>
+
+        <label>Bloom's Taxonomy Levels (select one or more — questions are spread across them)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:4px">
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Remember" checked style="width:auto;animation:none"> Remember</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Understand" checked style="width:auto;animation:none"> Understand</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Apply" style="width:auto;animation:none"> Apply</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Analyze" style="width:auto;animation:none"> Analyze</label>
+          <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Evaluate" style="width:auto;animation:none"> Evaluate</label>
+        </div>
+
+        <button class="btn-primary" style="margin-top:16px" id="aigen-generate-btn" onclick="generateAIQuestions()">✨ Generate Questions</button>
+        <div id="aigen-msg"></div>
+      </div>
+
+      <div class="card hidden" id="aigen-results-card">
+        <h2>Generated Questions (<span id="aigen-gen-count">0</span>)</h2>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+          <button class="toolbar-btn" onclick="toggleSelectAllGenerated(true)">Select All</button>
+          <button class="toolbar-btn" onclick="toggleSelectAllGenerated(false)">Deselect All</button>
+          <button class="btn-success btn-sm" id="aigen-add-btn" onclick="addSelectedAIQuestions()">➕ Add Selected to Test</button>
+        </div>
+        <div id="aigen-list"></div>
       </div>
     </div>
 
@@ -388,7 +453,7 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
         <div class="hint">
           <strong>Setup Steps:</strong><br>
           1. Create a test with title and duration<br>
-          2. Add questions (use Question Limit to select X random from pool)<br>
+          2. Add questions manually, or use "AI Generate" to create MCQs from a topic/material with Groq AI<br>
           3. Set test as ACTIVE and configure dates<br>
           4. Get link & QR code to share with students<br>
           5. Monitor leaderboard in real-time<br>
@@ -462,6 +527,7 @@ function toggleTheme(){
 window.addEventListener('load', function(){
   initTheme();
   initRipples();
+  loadGroqKey();
   const dep = document.getElementById('deployment-url');
   if(dep) dep.value = SCRIPT_URL;
 });
@@ -554,6 +620,7 @@ document.addEventListener('click', function(e){
     if(e.target.dataset.tab==='leaderboard'){ startLeaderboardAuto(); } else { clearInterval(lbInterval); }
     if(e.target.dataset.tab==='analytics') refreshTestDropdowns();
     if(e.target.dataset.tab==='reports') refreshReportDropdown();
+    if(e.target.dataset.tab==='aigen') refreshTestDropdowns();
   }
 });
 
@@ -642,8 +709,9 @@ function saveTest(){
 
 function refreshTestDropdowns(){
   google.script.run.withSuccessHandler(function(tests){
-    ['aq-testid','lb-testid','an-testid'].forEach(id => {
+    ['aq-testid','lb-testid','an-testid','aigen-testid'].forEach(id => {
       const sel = document.getElementById(id);
+      if(!sel) return;
       const cur = sel.value;
       sel.innerHTML = tests.map(t=>'<option value="'+t.TestID+'">'+t.Title+' ('+t.TestID+')</option>').join('');
       if(cur) sel.value = cur;
@@ -718,6 +786,306 @@ function removeQuestion(testId, qno){
     google.script.run.withSuccessHandler(() => { toast('Question deleted', 'success'); loadQuestionsList(); }).deleteQuestion(TOKEN, testId, qno);
   });
 }
+
+/* ===================== AI QUESTION GENERATION (Groq) ===================== */
+
+function saveGroqKey(){
+  localStorage.setItem('ap-groq-key', document.getElementById('aigen-apikey').value.trim());
+}
+function loadGroqKey(){
+  const k = localStorage.getItem('ap-groq-key');
+  const el = document.getElementById('aigen-apikey');
+  if(k && el) el.value = k;
+}
+if(window.pdfjsLib){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
+
+async function handleMaterialFile(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const name = file.name.toLowerCase();
+  const materialEl = document.getElementById('aigen-material');
+  const statusEl = document.getElementById('aigen-file-status');
+  statusEl.innerHTML = '<div class="msg info">Reading '+escapeHtml(file.name)+'...</div>';
+
+  try{
+    let text = '';
+    if(name.endsWith('.pdf')){
+      text = await extractTextFromPdf(file);
+    } else if(name.endsWith('.docx')){
+      text = await extractTextFromDocx(file);
+    } else if(name.endsWith('.pptx')){
+      text = await extractTextFromPptx(file);
+    } else if(name.endsWith('.doc') || name.endsWith('.ppt')){
+      throw new Error('Legacy .doc/.ppt is not supported in-browser. Please re-save as .docx/.pptx, or paste the text directly.');
+    } else {
+      text = await file.text();
+    }
+    text = (text || '').trim();
+    if(!text) throw new Error('No readable text was found in that file.');
+    materialEl.value = text;
+    statusEl.innerHTML = '<div class="msg success">✓ Loaded '+text.length.toLocaleString()+' characters from '+escapeHtml(file.name)+'</div>';
+    toast('Material loaded from '+file.name, 'success');
+  }catch(err){
+    statusEl.innerHTML = '<div class="msg error">'+escapeHtml(err.message || 'Could not read that file.')+'</div>';
+    toast('Could not read file', 'error');
+  } finally {
+    e.target.value = '';
+  }
+}
+
+async function extractTextFromPdf(file){
+  if(!window.pdfjsLib) throw new Error('PDF reader failed to load. Check your connection and try again.');
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf}).promise;
+  let text = '';
+  const maxPages = Math.min(pdf.numPages, 300);
+  for(let i=1; i<=maxPages; i++){
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(it => it.str).join(' ') + '\n\n';
+  }
+  return text;
+}
+
+async function extractTextFromDocx(file){
+  if(!window.mammoth) throw new Error('Word reader failed to load. Check your connection and try again.');
+  const buf = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({arrayBuffer: buf});
+  return result.value;
+}
+
+async function extractTextFromPptx(file){
+  if(!window.JSZip) throw new Error('PowerPoint reader failed to load. Check your connection and try again.');
+  const buf = await file.arrayBuffer();
+  const zip = await JSZip.loadAsync(buf);
+  const slidePaths = Object.keys(zip.files)
+    .filter(p => /^ppt\/slides\/slide\d+\.xml$/.test(p))
+    .sort((a,b) => Number(a.match(/slide(\d+)\.xml/)[1]) - Number(b.match(/slide(\d+)\.xml/)[1]));
+  if(!slidePaths.length) throw new Error('No slides found in this PowerPoint file.');
+  let text = '';
+  for(const path of slidePaths){
+    const xml = await zip.files[path].async('text');
+    const matches = xml.match(/<a:t>([\s\S]*?)<\/a:t>/g) || [];
+    const slideText = matches
+      .map(m => m.replace(/^<a:t>/,'').replace(/<\/a:t>$/,''))
+      .map(t => t.replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'"))
+      .join(' ');
+    text += slideText + '\n\n';
+  }
+  return text;
+}
+
+let aiGeneratedQuestions = [];
+
+function bloomToDifficulty(level){
+  if(level==='Remember' || level==='Understand') return 'EASY';
+  if(level==='Apply' || level==='Analyze') return 'MEDIUM';
+  return 'HARD';
+}
+
+function escapeHtml(s){
+  return String(s===undefined || s===null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function generateAIQuestions(){
+  const apiKey = document.getElementById('aigen-apikey').value.trim();
+  const testId = document.getElementById('aigen-testid').value;
+  const topic = document.getElementById('aigen-topic').value.trim();
+  const material = document.getElementById('aigen-material').value.trim();
+  const count = Math.max(1, Math.min(30, Number(document.getElementById('aigen-count').value) || 5));
+  const marks = Number(document.getElementById('aigen-marks').value) || 1;
+  const model = document.getElementById('aigen-model').value;
+  const levels = Array.from(document.querySelectorAll('.aigen-level:checked')).map(el => el.value);
+  const msgDiv = document.getElementById('aigen-msg');
+  msgDiv.innerHTML = '';
+
+  if(!testId){ toast('Please select a test first.', 'error'); return; }
+  if(!apiKey){ msgDiv.innerHTML = '<div class="msg error">Please enter your Groq API key.</div>'; return; }
+  if(!topic && !material){ msgDiv.innerHTML = '<div class="msg error">Please provide a topic or source material.</div>'; return; }
+  if(!levels.length){ msgDiv.innerHTML = '<div class="msg error">Select at least one Bloom\'s taxonomy level.</div>'; return; }
+
+  const btn = document.getElementById('aigen-generate-btn');
+  btn.disabled = true;
+  btn.innerText = '⏳ Generating...';
+  msgDiv.innerHTML = '<div class="msg info">Contacting Groq AI, please wait...</div>';
+
+  const levelList = levels.join(', ');
+  const sourceBlock = material
+    ? ('SOURCE MATERIAL (base every question strictly on this content, do not use outside facts):\n"""\n'+material+'\n"""\n')
+    : '';
+  const prompt =
+'You are an expert exam-setter. Create exactly '+count+' multiple-choice questions on the topic: "'+(topic || 'the given source material')+'".\n'+
+sourceBlock+
+'Distribute the questions as evenly as possible across these Bloom\'s Taxonomy cognitive levels: '+levelList+'.\n'+
+'Each question must have exactly 4 options (A, B, C, D) with only one correct option.\n'+
+'Use LaTeX between single $ signs for inline math/equations and $$ for block equations, only where relevant to the subject.\n'+
+'Respond with ONLY a valid raw JSON array (no markdown fences, no commentary, no surrounding text) in this exact schema:\n'+
+'[{"question":"string","optionA":"string","optionB":"string","optionC":"string","optionD":"string","correct":"A|B|C|D","bloomLevel":"Remember|Understand|Apply|Analyze|Evaluate"}]';
+
+  try{
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey
+      },
+      body: JSON.stringify({
+        model: model,
+        messages: [
+          {role:'system', content:'You are a precise question-generation engine. You always respond with strictly valid JSON only, matching the requested schema, with no extra text or markdown fences.'},
+          {role:'user', content: prompt}
+        ],
+        temperature: 0.6
+      })
+    });
+    const data = await res.json();
+    if(data.error){ throw new Error(data.error.message || 'Groq API error'); }
+    let text = (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) || '';
+    text = text.replace(/```json/gi,'').replace(/```/g,'').trim();
+    const firstBracket = text.indexOf('[');
+    const lastBracket = text.lastIndexOf(']');
+    if(firstBracket>=0 && lastBracket>=0) text = text.slice(firstBracket, lastBracket+1);
+    const parsed = JSON.parse(text);
+    if(!Array.isArray(parsed) || !parsed.length) throw new Error('AI did not return any questions. Try again.');
+
+    aiGeneratedQuestions = parsed.map((q,idx) => {
+      const bloom = q.bloomLevel || levels[idx % levels.length];
+      return {
+        question: q.question || '',
+        optionA: q.optionA || '', optionB: q.optionB || '', optionC: q.optionC || '', optionD: q.optionD || '',
+        correct: (q.correct || 'A').toString().toUpperCase().charAt(0),
+        bloomLevel: bloom,
+        difficulty: bloomToDifficulty(bloom),
+        marks: marks,
+        selected: true
+      };
+    });
+
+    renderGeneratedQuestions();
+    msgDiv.innerHTML = '<div class="msg success">✓ Generated '+aiGeneratedQuestions.length+' questions. Review and select below.</div>';
+    document.getElementById('aigen-results-card').classList.remove('hidden');
+    document.getElementById('aigen-results-card').scrollIntoView({behavior:'smooth', block:'start'});
+    toast('Questions generated', 'success');
+  }catch(err){
+    msgDiv.innerHTML = '<div class="msg error">'+(err.message || 'Failed to generate questions.')+'</div>';
+    toast('Generation failed', 'error');
+  }finally{
+    btn.disabled = false;
+    btn.innerText = '✨ Generate Questions';
+  }
+}
+
+function renderGeneratedQuestions(){
+  const div = document.getElementById('aigen-list');
+  document.getElementById('aigen-gen-count').innerText = aiGeneratedQuestions.length;
+  div.innerHTML = '';
+  aiGeneratedQuestions.forEach((q, idx) => {
+    const c = document.createElement('div');
+    c.className = 'qcard';
+    c.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'+
+        '<label style="display:flex;gap:8px;align-items:flex-start;font-weight:600;margin:0;animation:none">'+
+          '<input type="checkbox" data-idx="'+idx+'" class="aigen-select" '+(q.selected?'checked':'')+' onchange="aiGeneratedQuestions['+idx+'].selected=this.checked" style="width:auto;margin-top:4px;animation:none">'+
+          '<span>Q'+(idx+1)+'</span>'+
+        '</label>'+
+        '<span class="pill active">'+escapeHtml(q.bloomLevel)+'</span>'+
+      '</div>'+
+      '<label style="margin-top:8px">Question</label>'+
+      '<textarea rows="2" data-field="question" data-idx="'+idx+'">'+escapeHtml(q.question)+'</textarea>'+
+      '<div class="grid2" style="margin-top:6px">'+
+        '<div><label>Option A</label><textarea rows="1" data-field="optionA" data-idx="'+idx+'">'+escapeHtml(q.optionA)+'</textarea></div>'+
+        '<div><label>Option B</label><textarea rows="1" data-field="optionB" data-idx="'+idx+'">'+escapeHtml(q.optionB)+'</textarea></div>'+
+        '<div><label>Option C</label><textarea rows="1" data-field="optionC" data-idx="'+idx+'">'+escapeHtml(q.optionC)+'</textarea></div>'+
+        '<div><label>Option D</label><textarea rows="1" data-field="optionD" data-idx="'+idx+'">'+escapeHtml(q.optionD)+'</textarea></div>'+
+      '</div>'+
+      '<div class="grid2" style="margin-top:6px">'+
+        '<div><label>Correct Option</label><select data-field="correct" data-idx="'+idx+'">'+
+          ['A','B','C','D'].map(o=>'<option value="'+o+'" '+(q.correct===o?'selected':'')+'>'+o+'</option>').join('')+
+        '</select></div>'+
+        '<div><label>Difficulty</label><select data-field="difficulty" data-idx="'+idx+'">'+
+          ['EASY','MEDIUM','HARD'].map(o=>'<option value="'+o+'" '+(q.difficulty===o?'selected':'')+'>'+o+'</option>').join('')+
+        '</select></div>'+
+      '</div>'+
+      '<label>Marks</label><input type="number" step="0.5" data-field="marks" data-idx="'+idx+'" value="'+q.marks+'">'+
+      '<div class="preview" style="margin-top:8px" id="aigen-preview-'+idx+'"></div>';
+    div.appendChild(c);
+  });
+
+  div.querySelectorAll('textarea[data-field], select[data-field], input[data-field]').forEach(el => {
+    el.addEventListener('input', onGeneratedFieldChange);
+    el.addEventListener('change', onGeneratedFieldChange);
+  });
+
+  aiGeneratedQuestions.forEach((q, idx) => renderGeneratedPreview(idx));
+}
+
+function onGeneratedFieldChange(e){
+  const idx = Number(e.target.dataset.idx);
+  const field = e.target.dataset.field;
+  let val = e.target.value;
+  if(field === 'marks') val = Number(val) || 0;
+  aiGeneratedQuestions[idx][field] = val;
+  if(field === 'question' || field.indexOf('option')===0) renderGeneratedPreview(idx);
+}
+
+function renderGeneratedPreview(idx){
+  const q = aiGeneratedQuestions[idx];
+  const prev = document.getElementById('aigen-preview-'+idx);
+  if(!q || !prev) return;
+  let html = renderRichText(q.question);
+  ['A','B','C','D'].forEach(l => { html += '<div style="margin-top:4px">'+l+'. '+renderRichText(q['option'+l])+'</div>'; });
+  prev.innerHTML = html;
+  renderMathInElement(prev, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});
+}
+
+function toggleSelectAllGenerated(state){
+  aiGeneratedQuestions.forEach(q => q.selected = state);
+  renderGeneratedQuestions();
+}
+
+async function addSelectedAIQuestions(){
+  const testId = document.getElementById('aigen-testid').value;
+  if(!testId){ toast('Please select a test first.', 'error'); return; }
+  const selectedIdx = aiGeneratedQuestions.map((q,i)=>i).filter(i => aiGeneratedQuestions[i].selected);
+  if(!selectedIdx.length){ toast('No questions selected.', 'error'); return; }
+
+  const btn = document.getElementById('aigen-add-btn');
+  btn.disabled = true;
+  let added = 0, failed = 0;
+
+  for(const i of selectedIdx){
+    const q = aiGeneratedQuestions[i];
+    if(!q.question || !q.optionA || !q.optionB){ failed++; continue; }
+    const payload = {
+      TestID: testId,
+      QuestionText: q.question,
+      ImageURL: '',
+      OptionA: q.optionA, OptionB: q.optionB, OptionC: q.optionC, OptionD: q.optionD,
+      CorrectOption: q.correct,
+      Marks: q.marks,
+      Difficulty: q.difficulty
+    };
+    try{
+      await new Promise((resolve, reject) => {
+        google.script.run.withSuccessHandler(resolve).withFailureHandler(reject).addQuestion(TOKEN, payload);
+      });
+      added++;
+    }catch(err){ failed++; }
+    btn.innerText = 'Adding ' + (added+failed) + ' / ' + selectedIdx.length + '...';
+  }
+
+  btn.disabled = false;
+  btn.innerText = '➕ Add Selected to Test';
+  toast(added+' question(s) added to the test'+(failed?(', '+failed+' failed'):''), failed ? 'error' : 'success');
+
+  aiGeneratedQuestions = aiGeneratedQuestions.filter(q => !q.selected);
+  renderGeneratedQuestions();
+  if(document.getElementById('aq-testid').value === testId) loadQuestionsList();
+}
+/* =================== END AI QUESTION GENERATION =================== */
 
 function loadManageList(){
   const div = document.getElementById('manage-list');
