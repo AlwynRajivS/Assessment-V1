@@ -1,0 +1,41 @@
+{
+  "name": "Assessment Platform",
+  "short_name": "Assessment",
+  "description": "Online Assessment & Exam Platform with Real-time Analytics",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#4a86e8",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234a86e8' width='192' height='192'/%3E%3Ctext x='50%' y='50%' font-size='96' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3EA%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%234a86e8' width='192' height='192'/%3E%3Ctext x='50%' y='50%' font-size='96' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3EA%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Exam",
+      "short_name": "Exam",
+      "description": "Quick access to take an exam",
+      "url": "./index.html?page=exam",
+      "icons": []
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'%3E%3Crect fill='%23f3f5fb' width='540' height='720'/%3E%3C/svg%3E",
+      "sizes": "540x720",
+      "type": "image/svg+xml"
+    }
+  ]
+}
