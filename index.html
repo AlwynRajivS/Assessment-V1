@@ -658,6 +658,11 @@ function refreshPalette(){
   const pct = STATE.questions.length ? Math.round((answered/STATE.questions.length)*100) : 0;
   document.getElementById('progress-fill').style.width = pct+'%';
   document.getElementById('current-q').innerText = STATE.currentQ + 1;
+
+  const submitBtn = document.getElementById('submit-btn');
+  if(submitBtn){
+    submitBtn.disabled = (STATE.currentQ !== STATE.questions.length - 1);
+  }
 }
 function renderRichText(text){
   if(!text) return '';
