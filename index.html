@@ -94,6 +94,8 @@ button:focus-visible{outline:2px solid var(--primary);outline-offset:2px;}
 .btn-outline:hover{background:rgba(74,134,232,.1);transform:translateY(-1px);}
 .btn-danger{background:linear-gradient(135deg,var(--danger),#c23434);color:#fff;box-shadow:0 4px 14px rgba(224,75,75,.35);}
 .btn-danger:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(224,75,75,.5);}
+.btn-danger:disabled{background:#e6b3b3;box-shadow:none;cursor:not-allowed;transform:none;color:#fff;opacity:.7;}
+[data-theme="dark"] .btn-danger:disabled{background:#5a3030;color:#ddd;}
 .msg{padding:10px 14px;border-radius:8px;font-size:.9rem;margin-top:10px;animation:slideUp .3s ease both;}
 .msg.error{background:#fdeaea;color:#a12727;border-left:4px solid var(--danger);}
 .msg.info{background:#eaf2ff;color:#2856a3;border-left:4px solid var(--primary);}
