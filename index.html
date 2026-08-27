@@ -457,7 +457,11 @@ window.addEventListener('load', function(){
 // Service Worker Registration
 function registerServiceWorker(){
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.register('data:text/javascript,self.addEventListener("install",e=>self.skipWaiting());self.addEventListener("activate",e=>e.waitUntil(clients.claim())).then(function(){}).catch(function(){});
+    const swCode = 'self.addEventListener("install",e=>self.skipWaiting());'
+                 + 'self.addEventListener("activate",e=>e.waitUntil(clients.claim()));';
+    navigator.serviceWorker.register('data:text/javascript,' + encodeURIComponent(swCode))
+      .then(function(){})
+      .catch(function(){});
   }
 }
 
