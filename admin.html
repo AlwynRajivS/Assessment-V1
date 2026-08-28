@@ -185,6 +185,30 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
 .confetti-piece{position:absolute;top:-10px;border-radius:2px;pointer-events:none;animation:confettiFall linear forwards;}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(220px) rotate(540deg);opacity:0;}}
 /* =================== END LEADERBOARD PODIUM ==================== */
+
+/* ===================== QUESTION-STYLE CATEGORY BOX ===================== */
+.level-box{max-height:230px;overflow-y:auto;border:1px solid var(--border);border-radius:9px;padding:10px 12px;
+  margin-top:6px;display:flex;flex-wrap:wrap;gap:10px 16px;background:var(--input-bg);}
+.level-box label{display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none;font-size:.8rem;
+  flex:0 0 auto;}
+.level-box input[type=checkbox]{width:auto;animation:none;flex-shrink:0;}
+/* ================= END QUESTION-STYLE CATEGORY BOX ===================== */
+
+/* ===================== IMPACT ANALYSIS ===================== */
+.impact-card{border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:12px;animation:slideUp .3s ease both;
+  background:var(--card);}
+.impact-tag{display:inline-block;padding:3px 10px;border-radius:10px;font-size:.72rem;font-weight:700;margin:0 6px 6px 0;}
+.impact-tag.strong{background:#dcf3e6;color:#1e7c4d;}
+.impact-tag.moderate{background:#fff3d6;color:#9a6a00;}
+.impact-tag.weak{background:#fdeaea;color:#a12727;}
+[data-theme="dark"] .impact-tag.strong{background:#123626;color:#8fe8bd;}
+[data-theme="dark"] .impact-tag.moderate{background:#3a2f12;color:#ffd88a;}
+[data-theme="dark"] .impact-tag.weak{background:#3a1c1c;color:#ff9b9b;}
+.impact-list{margin:6px 0 2px;padding-left:18px;font-size:.83rem;line-height:1.6;}
+.impact-list li{margin-bottom:2px;}
+.impact-suggestion{background:var(--input-bg);border-left:4px solid var(--primary);border-radius:7px;
+  padding:8px 12px;font-size:.83rem;margin-top:8px;line-height:1.55;}
+/* =================== END IMPACT ANALYSIS ===================== */
 </style>
 </head>
 <body>
@@ -292,6 +316,9 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
           <div><label>Option C</label><textarea id="aq-c" rows="2" onfocus="lastFocused='aq-c'" oninput="livePreview()"></textarea></div>
           <div><label>Option D</label><textarea id="aq-d" rows="2" onfocus="lastFocused='aq-d'" oninput="livePreview()"></textarea></div>
         </div>
+        <label>Topic</label>
+        <input id="aq-topic" placeholder="e.g. Newton's Laws of Motion, Cell Biology, Data Structures...">
+        <div class="hint">Used for topic-wise performance analysis in Reports → Impact Analysis.</div>
         <div class="grid2">
           <div><label>Correct Option</label>
             <select id="aq-correct"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
@@ -317,7 +344,7 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
     <div id="tab-aigen" class="tabpane hidden">
       <div class="card">
         <h2>🤖 AI Question Generator</h2>
-        <p class="small">Generate MCQs from a topic or study material using the Groq API. Pick how many questions and which Bloom's Taxonomy levels you want, then review and choose which ones to add to your test.</p>
+        <p class="small">Generate MCQs from a topic or study material using the Groq API. Pick how many questions, which Bloom's Taxonomy levels, and optionally which skill-enhancement question styles you want, then review and choose which ones to add to your test.</p>
 
         <label>Select Test</label>
         <select id="aigen-testid"></select>
@@ -357,6 +384,14 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
           <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Analyze" style="width:auto;animation:none"> Analyze</label>
           <label style="display:flex;align-items:center;gap:6px;font-weight:500;margin:0;animation:none"><input type="checkbox" class="aigen-level" value="Evaluate" style="width:auto;animation:none"> Evaluate</label>
         </div>
+
+        <label style="margin-top:16px">Skill-Enhancement Question Styles <span class="small">(optional — leave all unchecked to let the AI pick naturally)</span></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 2px">
+          <button type="button" class="toolbar-btn" onclick="toggleAllCategories(true)">Select All</button>
+          <button type="button" class="toolbar-btn" onclick="toggleAllCategories(false)">Clear All</button>
+        </div>
+        <div class="level-box" id="aigen-category-box"></div>
+        <div class="hint">These are optional question-style flavors (Scenario-based, Case Study, Critical Thinking, etc.) layered on top of the Bloom's levels above. They only guide how the AI phrases/generates questions during review — they are not saved as a new field in your backend, so nothing about your existing data model changes.</div>
 
         <button class="btn-primary" style="margin-top:16px" id="aigen-generate-btn" onclick="generateAIQuestions()">✨ Generate Questions</button>
         <div id="aigen-msg"></div>
@@ -459,6 +494,22 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
           <tbody></tbody>
         </table></div>
       </div>
+
+      <div class="card">
+        <h2>🧠 Overall Assessment Impact Analysis</h2>
+        <p class="small">Computed from the report above plus per-topic performance. Generate the report first, then run this.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-primary" onclick="generateImpactAnalysis()">🧠 Generate Impact Analysis</button>
+          <button class="btn-success" id="impact-pdf-btn" onclick="downloadImpactPdf()">📄 Download Impact Analysis PDF</button>
+        </div>
+        <div id="impact-overall" style="margin-top:14px"></div>
+      </div>
+
+      <div class="card hidden" id="impact-students-card">
+        <h2>👤 Student-wise Impact Analysis</h2>
+        <p class="small">Strengths, weak areas and a tailored suggestion for each candidate who attempted this test.</p>
+        <div id="impact-students-container"></div>
+      </div>
     </div>
 
     <!-- TAB: SETTINGS -->
@@ -493,7 +544,7 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJwTELllhTggmPBPAnOCDQWKipB6nwW_kyr2X_UKKcODEmFTmEuqjQBX8zwhCj7GzSVA/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx7DQLqbK2wQCSBjvb2d2kWSTeQY03z4PlrSl9pXS9role9oCoXsKN-_4BNiT1HybqDow/exec';
 
 // Google.script.run polyfill
 (function () {
@@ -556,6 +607,7 @@ window.addEventListener('load', function(){
   initTheme();
   initRipples();
   loadGroqKey();
+  renderCategoryCheckboxes();
   const dep = document.getElementById('deployment-url');
   if(dep) dep.value = SCRIPT_URL;
 });
@@ -770,7 +822,8 @@ function submitQuestion(){
     OptionD: document.getElementById('aq-d').value,
     CorrectOption: document.getElementById('aq-correct').value,
     Marks: Number(document.getElementById('aq-marks').value),
-    Difficulty: document.getElementById('aq-difficulty').value
+    Difficulty: document.getElementById('aq-difficulty').value,
+    Topic: document.getElementById('aq-topic').value.trim() || 'General'
   };
   if(!q.QuestionText || !q.OptionA || !q.OptionB){
     document.getElementById('aq-msg').innerHTML='<div class="msg error">Question text and options A & B required.</div>'; return;
@@ -780,7 +833,7 @@ function submitQuestion(){
   google.script.run.withSuccessHandler(function(res){
     btn.disabled = false;
     document.getElementById('aq-msg').innerHTML='<div class="msg success">✓ Question #'+res.qno+' added.</div>';
-    ['aq-qtext','aq-image','aq-a','aq-b','aq-c','aq-d'].forEach(id => document.getElementById(id).value='');
+    ['aq-qtext','aq-image','aq-a','aq-b','aq-c','aq-d','aq-topic'].forEach(id => document.getElementById(id).value='');
     livePreview();
     loadQuestionsList();
   }).withFailureHandler(function(err){
@@ -800,7 +853,7 @@ function loadQuestionsList(){
     list.forEach(q => {
       const c = document.createElement('div'); c.className='qcard';
       c.innerHTML = '<b>Q'+q.QNo+'.</b> '+renderRichText(q.QuestionText)+
-        '<div class="small">✓ '+q.CorrectOption+' | Marks: '+q.Marks+' | '+q.Difficulty+'</div>'+
+        '<div class="small">✓ '+q.CorrectOption+' | Marks: '+q.Marks+' | '+q.Difficulty+' | 📚 '+(q.Topic||'General')+'</div>'+
         '<div class="qtoolbar"><button class="btn-danger btn-sm" onclick="removeQuestion(\''+testId+'\','+q.QNo+')">Delete</button></div>';
       div.appendChild(c);
     });
@@ -828,6 +881,38 @@ function loadGroqKey(){
 if(window.pdfjsLib){
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 }
+
+/* ---- Skill-Enhancement Question Style categories (optional, additive, client-side only) ---- */
+const QUESTION_CATEGORIES = [
+  'Scenario-based Questions','Data Analysis Questions','Case Study Questions','Report Writing Questions',
+  'Creative Thinking Questions','Logical & Mathematical Analysis Questions','Simulation Modeling Questions',
+  'Social, Political, Natural & Work Environment Questions','Interpretation & Analysis Questions',
+  'Decision-Making Questions','Planning-Based Questions','Emotional Intelligence Questions',
+  'Interdisciplinary Questions','Critical Thinking Questions','Problem-Solving Questions',
+  'Ethical Dilemma Questions','Risk Assessment Questions','Root Cause Analysis Questions',
+  'Troubleshooting Questions','Process Improvement Questions','Innovation & Design Thinking Questions',
+  'Leadership Situation Questions','Teamwork & Collaboration Questions','Conflict Resolution Questions',
+  'Communication Skill Questions','Presentation-Based Questions','Customer/Stakeholder Service Questions',
+  'Time Management Questions','Resource Allocation Questions','Project Management Questions',
+  'Strategic Thinking Questions','Financial Analysis Questions','Statistical Interpretation Questions',
+  'Research Methodology Questions','Evidence-Based Reasoning Questions','Policy Analysis Questions',
+  'Sustainability & Environmental Questions','Digital Literacy Questions','Cybersecurity Awareness Questions',
+  'Artificial Intelligence & Emerging Technology Questions','Information Evaluation Questions',
+  'Visual Interpretation Questions','Comparative Analysis Questions','Reflection-Based Questions',
+  'Workplace Safety Questions','Entrepreneurship Questions','Negotiation & Persuasion Questions',
+  'Global & Cultural Awareness Questions','Policy Implementation Questions','Capstone Integrated Assessment Questions'
+];
+function renderCategoryCheckboxes(){
+  const box = document.getElementById('aigen-category-box');
+  if(!box) return;
+  box.innerHTML = QUESTION_CATEGORIES.map(function(cat, i){
+    return '<label><input type="checkbox" class="aigen-category" value="'+escapeHtml(cat)+'" data-idx="'+i+'"> '+escapeHtml(cat)+'</label>';
+  }).join('');
+}
+function toggleAllCategories(state){
+  document.querySelectorAll('.aigen-category').forEach(el => el.checked = state);
+}
+/* ---- END category checkboxes ---- */
 
 async function handleMaterialFile(e){
   const file = e.target.files[0];
@@ -927,6 +1012,7 @@ async function generateAIQuestions(){
   const marks = Number(document.getElementById('aigen-marks').value) || 1;
   const model = document.getElementById('aigen-model').value;
   const levels = Array.from(document.querySelectorAll('.aigen-level:checked')).map(el => el.value);
+  const categories = Array.from(document.querySelectorAll('.aigen-category:checked')).map(el => el.value);
   const msgDiv = document.getElementById('aigen-msg');
   msgDiv.innerHTML = '';
 
@@ -941,6 +1027,9 @@ async function generateAIQuestions(){
   msgDiv.innerHTML = '<div class="msg info">Contacting Groq AI, please wait...</div>';
 
   const levelList = levels.join(', ');
+  const categoryBlock = categories.length
+    ? ('In addition to the cognitive levels above, wherever it fits naturally, style some questions after these skill-enhancement question types (spread across them, do not force every one): '+categories.join(', ')+'. For each question, also return which of these style categories (if any) it best matches in a "questionCategory" field; use an empty string if none apply.\n')
+    : '';
   const sourceBlock = material
     ? ('SOURCE MATERIAL (base every question strictly on this content, do not use outside facts):\n"""\n'+material+'\n"""\n')
     : '';
@@ -948,10 +1037,11 @@ async function generateAIQuestions(){
 'You are an expert exam-setter. Create exactly '+count+' multiple-choice questions on the topic: "'+(topic || 'the given source material')+'".\n'+
 sourceBlock+
 'Distribute the questions as evenly as possible across these Bloom\'s Taxonomy cognitive levels: '+levelList+'.\n'+
+categoryBlock+
 'Each question must have exactly 4 options (A, B, C, D) with only one correct option.\n'+
 'Use LaTeX between single $ signs for inline math/equations and $$ for block equations, only where relevant to the subject.\n'+
 'Respond with ONLY a valid raw JSON array (no markdown fences, no commentary, no surrounding text) in this exact schema:\n'+
-'[{"question":"string","optionA":"string","optionB":"string","optionC":"string","optionD":"string","correct":"A|B|C|D","bloomLevel":"Remember|Understand|Apply|Analyze|Evaluate"}]';
+'[{"question":"string","optionA":"string","optionB":"string","optionC":"string","optionD":"string","correct":"A|B|C|D","bloomLevel":"Remember|Understand|Apply|Analyze|Evaluate","questionCategory":"string"}]';
 
   try{
     const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -986,6 +1076,8 @@ sourceBlock+
         optionA: q.optionA || '', optionB: q.optionB || '', optionC: q.optionC || '', optionD: q.optionD || '',
         correct: (q.correct || 'A').toString().toUpperCase().charAt(0),
         bloomLevel: bloom,
+        questionCategory: q.questionCategory || '',
+        topic: topic || 'General',
         difficulty: bloomToDifficulty(bloom),
         marks: marks,
         selected: true
@@ -1014,12 +1106,15 @@ function renderGeneratedQuestions(){
     const c = document.createElement('div');
     c.className = 'qcard';
     c.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap">'+
         '<label style="display:flex;gap:8px;align-items:flex-start;font-weight:600;margin:0;animation:none">'+
           '<input type="checkbox" data-idx="'+idx+'" class="aigen-select" '+(q.selected?'checked':'')+' onchange="aiGeneratedQuestions['+idx+'].selected=this.checked" style="width:auto;margin-top:4px;animation:none">'+
           '<span>Q'+(idx+1)+'</span>'+
         '</label>'+
-        '<span class="pill active">'+escapeHtml(q.bloomLevel)+'</span>'+
+        '<span>'+
+          '<span class="pill active">'+escapeHtml(q.bloomLevel)+'</span>'+
+          (q.questionCategory ? ' <span class="pill inactive">'+escapeHtml(q.questionCategory)+'</span>' : '')+
+        '</span>'+
       '</div>'+
       '<label style="margin-top:8px">Question</label>'+
       '<textarea rows="2" data-field="question" data-idx="'+idx+'">'+escapeHtml(q.question)+'</textarea>'+
@@ -1037,7 +1132,10 @@ function renderGeneratedQuestions(){
           ['EASY','MEDIUM','HARD'].map(o=>'<option value="'+o+'" '+(q.difficulty===o?'selected':'')+'>'+o+'</option>').join('')+
         '</select></div>'+
       '</div>'+
-      '<label>Marks</label><input type="number" step="0.5" data-field="marks" data-idx="'+idx+'" value="'+q.marks+'">'+
+      '<div class="grid2" style="margin-top:6px">'+
+        '<div><label>Marks</label><input type="number" step="0.5" data-field="marks" data-idx="'+idx+'" value="'+q.marks+'"></div>'+
+        '<div><label>Topic</label><input type="text" data-field="topic" data-idx="'+idx+'" value="'+escapeHtml(q.topic||'General')+'"></div>'+
+      '</div>'+
       '<div class="preview" style="margin-top:8px" id="aigen-preview-'+idx+'"></div>';
     div.appendChild(c);
   });
@@ -1094,7 +1192,8 @@ async function addSelectedAIQuestions(){
       OptionA: q.optionA, OptionB: q.optionB, OptionC: q.optionC, OptionD: q.optionD,
       CorrectOption: q.correct,
       Marks: q.marks,
-      Difficulty: q.difficulty
+      Difficulty: q.difficulty,
+      Topic: q.topic || 'General'
     };
     try{
       await new Promise((resolve, reject) => {
@@ -1300,8 +1399,253 @@ function loadReport(){
       '<span class="stat-mini">👥 Total: '+rows.length+'</span>'+
       '<span class="stat-mini">✓ Submitted: '+submitted+'</span>'+
       '<span class="stat-mini">📊 Avg Score: '+avg+'</span>';
+    document.getElementById('impact-overall').innerHTML = '';
+    document.getElementById('impact-students-card').classList.add('hidden');
+    document.getElementById('impact-students-container').innerHTML = '';
   }).generateReport(TOKEN, testId);
 }
+
+/* ===================== OVERALL & STUDENT-WISE IMPACT ANALYSIS ===================== */
+/* Uses generateReport() data plus generateTopicReport() (per-topic breakdown). */
+
+function impactTagHtml(label, level){
+  return '<span class="impact-tag '+level+'">'+escapeHtml(label)+'</span>';
+}
+
+function topicAccuracyTag(acc){
+  if(acc >= 75) return 'strong';
+  if(acc >= 50) return 'moderate';
+  return 'weak';
+}
+
+// topics: {TopicName:{correct,wrong,unattempted,total}} -> sorted array with accuracy + tag
+// Topics with zero attempts (correct+wrong===0) are excluded from ranking (not enough data).
+function computeTopicBreakdown(topics){
+  const list = Object.keys(topics||{}).map(function(t){
+    const d = topics[t];
+    const attempted = (d.correct||0) + (d.wrong||0);
+    const accuracy = attempted > 0 ? (d.correct/attempted*100) : null;
+    return { topic: t, correct: d.correct, wrong: d.wrong, unattempted: d.unattempted, total: d.total, accuracy: accuracy };
+  }).filter(function(x){ return x.accuracy !== null; });
+  list.sort(function(a,b){ return a.accuracy - b.accuracy; });
+  return list;
+}
+
+function topicTagsHtml(breakdown){
+  if(!breakdown.length) return '<span class="small">No topic data yet — add a Topic to your questions.</span>';
+  return breakdown.map(function(t){
+    return impactTagHtml(t.topic+' ('+t.accuracy.toFixed(0)+'%)', topicAccuracyTag(t.accuracy));
+  }).join('');
+}
+
+function computeStudentImpact(r, classAvgTime, studentTopics){
+  const correct = Number(r.correct)||0;
+  const wrong = Number(r.wrong)||0;
+  const unattempted = Number(r.unattempted)||0;
+  const attempted = correct + wrong;
+  const total = attempted + unattempted;
+  const violations = Number(r.violations)||0;
+  const finalScore = Number(r.finalScore)||0;
+  const maxScore = Number(r.maxScore)||0;
+  const avgTime = Number(r.avgTime)||0;
+
+  const accuracy = attempted > 0 ? (correct/attempted*100) : 0;
+  const completion = total > 0 ? (attempted/total*100) : 0;
+  const scorePct = maxScore > 0 ? (finalScore/maxScore*100) : 0;
+  const pacingRatio = (classAvgTime > 0 && avgTime > 0) ? (avgTime/classAvgTime) : 1;
+
+  const strengths = [], weaknesses = [];
+  let accTag, compTag, discTag, scoreTag;
+
+  if(accuracy >= 75){ accTag='strong'; strengths.push('Strong accuracy ('+accuracy.toFixed(0)+'%) on attempted questions'); }
+  else if(accuracy >= 50){ accTag='moderate'; }
+  else { accTag='weak'; weaknesses.push('Low accuracy ('+accuracy.toFixed(0)+'%) — concept gaps likely'); }
+
+  if(completion >= 90){ compTag='strong'; strengths.push('Attempted almost all questions ('+completion.toFixed(0)+'%)'); }
+  else if(completion >= 60){ compTag='moderate'; }
+  else { compTag='weak'; weaknesses.push('Low attempt/completion rate ('+completion.toFixed(0)+'%) — likely time management issue'); }
+
+  if(violations === 0){ discTag='strong'; strengths.push('No proctoring violations'); }
+  else if(violations <= 2){ discTag='moderate'; }
+  else { discTag='weak'; weaknesses.push(violations+' proctoring violations recorded — needs discipline/focus improvement'); }
+
+  if(scorePct >= 75){ scoreTag='strong'; strengths.push('High overall score ('+scorePct.toFixed(0)+'%)'); }
+  else if(scorePct >= 40){ scoreTag='moderate'; }
+  else { scoreTag='weak'; weaknesses.push('Overall score below passing comfort zone ('+scorePct.toFixed(0)+'%)'); }
+
+  let pacingNote = '';
+  if(pacingRatio >= 1.3) pacingNote = 'Took noticeably longer per question than the class average — may indicate hesitation or difficulty pacing.';
+  else if(pacingRatio <= 0.6) pacingNote = 'Answered much faster than the class average — worth verifying attentiveness/due diligence.';
+
+  const topicBreakdown = computeTopicBreakdown(studentTopics || {});
+  const weakTopics = topicBreakdown.filter(function(t){ return t.accuracy < 50; });
+  const strongTopics = topicBreakdown.filter(function(t){ return t.accuracy >= 75; });
+  if(weakTopics.length) weaknesses.push('Weak topics: '+weakTopics.map(function(t){return t.topic+' ('+t.accuracy.toFixed(0)+'%)';}).join(', '));
+  if(strongTopics.length) strengths.push('Strong topics: '+strongTopics.map(function(t){return t.topic;}).join(', '));
+
+  let overallTag, overallLabel;
+  if(scorePct >= 75 && accuracy >= 75){ overallTag='strong'; overallLabel='Strong Performer'; }
+  else if(scorePct < 40 || accuracy < 40){ overallTag='weak'; overallLabel='Needs Support'; }
+  else { overallTag='moderate'; overallLabel='Moderate Performer'; }
+
+  if(!weaknesses.length) weaknesses.push('No major weak areas identified — keep up the consistent performance.');
+
+  const suggestionParts = [];
+  if(weakTopics.length) suggestionParts.push('revisit '+weakTopics.slice(0,2).map(function(t){return t.topic;}).join(' and ')+' specifically, then re-attempt practice MCQs on those topics');
+  else if(accTag==='weak') suggestionParts.push('revisit core concepts for this subject and practice more MCQs with feedback review');
+  if(compTag==='weak') suggestionParts.push('work on time management — attempt easier questions first to maximize completion');
+  if(discTag==='weak') suggestionParts.push('review exam guidelines and minimize distractions during the test window');
+  if(scoreTag==='weak' && suggestionParts.length===0) suggestionParts.push('take additional practice tests and doubt-clearing sessions before the next assessment');
+  const suggestion = suggestionParts.length
+    ? ('Suggested focus: ' + suggestionParts.join('; ') + '.')
+    : 'Suggested focus: maintain current preparation habits and attempt slightly harder practice material to push further.';
+
+  return {
+    name: r.name, roll: r.roll, status: r.status,
+    accuracy, completion, scorePct, violations, pacingNote,
+    accTag, compTag, discTag, scoreTag, overallTag, overallLabel,
+    strengths, weaknesses, suggestion, topicBreakdown
+  };
+}
+
+function generateImpactAnalysis(){
+  if(!reportRows.length){ toast('Generate the report first.', 'error'); return; }
+  const testId = document.getElementById('rp-testid').value;
+  const overallDiv = document.getElementById('impact-overall');
+  overallDiv.innerHTML = '<div class="msg info">Loading topic-wise data...</div>';
+
+  google.script.run.withSuccessHandler(function(topicData){
+    renderImpactAnalysis(topicData);
+  }).withFailureHandler(function(err){
+    // Topic report failed (e.g. Topic column not migrated yet) — fall back
+    // so the rest of the analysis still works without topic breakdowns.
+    toast('Topic data unavailable: '+err.message, 'error');
+    renderImpactAnalysis({students:[], classTopics:{}});
+  }).generateTopicReport(TOKEN, testId);
+}
+
+function renderImpactAnalysis(topicData){
+  const overallDiv = document.getElementById('impact-overall');
+  const studentsCard = document.getElementById('impact-students-card');
+  const studentsDiv = document.getElementById('impact-students-container');
+
+  const attempted = reportRows.filter(r => r.status==='SUBMITTED' || r.status==='AUTO_SUBMITTED');
+  if(!attempted.length){
+    overallDiv.innerHTML = '<div class="msg info">No submitted candidates yet for this test — impact analysis will appear once students submit.</div>';
+    studentsCard.classList.add('hidden');
+    studentsDiv.innerHTML = '';
+    return;
+  }
+
+  const topicsByRoll = {};
+  (topicData.students||[]).forEach(function(s){ topicsByRoll[s.roll] = s.topics; });
+
+  const classAvgTime = attempted.reduce((s,r) => s + (Number(r.avgTime)||0), 0) / attempted.length;
+  const impacts = attempted.map(r => computeStudentImpact(r, classAvgTime, topicsByRoll[r.roll]));
+
+  const avg = (arr, fn) => arr.length ? (arr.reduce((s,x)=>s+fn(x),0)/arr.length) : 0;
+  const classAccuracy = avg(impacts, i => i.accuracy);
+  const classCompletion = avg(impacts, i => i.completion);
+  const classScore = avg(impacts, i => i.scorePct);
+  const classViolations = avg(impacts, i => i.violations);
+
+  const weakCounts = {accuracy:0, completion:0, discipline:0, score:0};
+  impacts.forEach(i => {
+    if(i.accTag==='weak') weakCounts.accuracy++;
+    if(i.compTag==='weak') weakCounts.completion++;
+    if(i.discTag==='weak') weakCounts.discipline++;
+    if(i.scoreTag==='weak') weakCounts.score++;
+  });
+  const weakLabels = {accuracy:'Accuracy / concept understanding', completion:'Question completion & pacing', discipline:'Exam discipline (violations)', score:'Overall scoring'};
+  const strongestArea = Object.keys(weakCounts).reduce((best,k) => weakCounts[k] < weakCounts[best] ? k : best, 'accuracy');
+  const weakestArea = Object.keys(weakCounts).reduce((worst,k) => weakCounts[k] > weakCounts[worst] ? k : worst, 'accuracy');
+  const weakestPct = attempted.length ? Math.round(weakCounts[weakestArea]/attempted.length*100) : 0;
+
+  const classSuggestionMap = {
+    accuracy: 'schedule focused concept-revision sessions and share topic-wise wrong-answer reviews with the class.',
+    completion: 'coach students on pacing strategies (skip-and-return, easier-first) and consider slightly longer duration or fewer questions if this pattern is widespread.',
+    discipline: 'reinforce exam-conduct guidelines before the next test and review proctoring settings/violation thresholds.',
+    score: 'add more practice tests and doubt-clearing sessions before the next assessment cycle.'
+  };
+
+  const classTopicBreakdown = computeTopicBreakdown(topicData.classTopics || {});
+  const weakestTopics = classTopicBreakdown.filter(t => t.accuracy < 60).slice(0,3);
+  const topicSuggestion = weakestTopics.length
+    ? ('📌 Weakest topics (class-wide): ' + weakestTopics.map(t=>t.topic+' ('+t.accuracy.toFixed(0)+'%)').join(', ') +
+       ' — recommend a focused revision session on these before the next test.')
+    : '';
+
+  overallDiv.innerHTML =
+    '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:12px">'+
+      '<div class="analytics-card"><div class="analytics-value">'+classAccuracy.toFixed(0)+'%</div><div class="analytics-label">Avg Accuracy</div></div>'+
+      '<div class="analytics-card"><div class="analytics-value">'+classCompletion.toFixed(0)+'%</div><div class="analytics-label">Avg Completion</div></div>'+
+      '<div class="analytics-card"><div class="analytics-value">'+classScore.toFixed(0)+'%</div><div class="analytics-label">Avg Score</div></div>'+
+      '<div class="analytics-card"><div class="analytics-value">'+classViolations.toFixed(1)+'</div><div class="analytics-label">Avg Violations</div></div>'+
+    '</div>'+
+    '<div class="impact-card">'+
+      '<div>'+impactTagHtml('Class Strength: '+weakLabels[strongestArea], 'strong')+
+      impactTagHtml('Class Weak Area: '+weakLabels[weakestArea]+' ('+weakestPct+'% of students)', 'weak')+'</div>'+
+      '<div class="impact-suggestion">📌 Recommended action: '+classSuggestionMap[weakestArea]+'</div>'+
+    '</div>'+
+    '<div class="impact-card">'+
+      '<b class="small">📚 Topic-wise Class Performance</b>'+
+      '<div style="margin-top:6px">'+topicTagsHtml(classTopicBreakdown)+'</div>'+
+      (topicSuggestion ? '<div class="impact-suggestion">'+topicSuggestion+'</div>' : '')+
+    '</div>';
+
+  studentsDiv.innerHTML = '';
+  impacts
+    .slice()
+    .sort((a,b) => a.scorePct - b.scorePct)
+    .forEach(i => {
+      const card = document.createElement('div');
+      card.className = 'impact-card';
+      card.innerHTML =
+        '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">'+
+          '<b>'+escapeHtml(i.name)+'</b> <span class="small">Roll: '+escapeHtml(i.roll)+'</span>'+
+          impactTagHtml(i.overallLabel, i.overallTag)+
+        '</div>'+
+        '<div style="margin-top:6px" class="small">Accuracy: '+i.accuracy.toFixed(0)+'% &nbsp;|&nbsp; Completion: '+i.completion.toFixed(0)+'% &nbsp;|&nbsp; Score: '+i.scorePct.toFixed(0)+'% &nbsp;|&nbsp; Violations: '+i.violations+'</div>'+
+        '<div style="margin-top:8px"><b class="small">Strengths</b><ul class="impact-list">'+i.strengths.map(s=>'<li>'+escapeHtml(s)+'</li>').join('')+'</ul></div>'+
+        '<div><b class="small">Weak Areas</b><ul class="impact-list">'+i.weaknesses.map(s=>'<li>'+escapeHtml(s)+'</li>').join('')+'</ul></div>'+
+        '<div style="margin-top:6px"><b class="small">📚 Topic-wise Performance</b><div style="margin-top:4px">'+topicTagsHtml(i.topicBreakdown)+'</div></div>'+
+        (i.pacingNote ? '<div class="small" style="margin-top:4px">⏱️ '+escapeHtml(i.pacingNote)+'</div>' : '')+
+        '<div class="impact-suggestion">💡 '+escapeHtml(i.suggestion)+'</div>';
+      studentsDiv.appendChild(card);
+    });
+  studentsCard.classList.remove('hidden');
+  toast('Impact analysis generated', 'success');
+}
+
+function downloadImpactPdf(){
+  const testId = document.getElementById('rp-testid').value;
+  if(!testId){ toast('Please select a test first', 'error'); return; }
+  const overallHtml = document.getElementById('impact-overall').innerHTML;
+  const studentsHtml = document.getElementById('impact-students-container').innerHTML;
+  if(!overallHtml.trim()){ toast('Generate the Impact Analysis first.', 'error'); return; }
+
+  const btn = document.getElementById('impact-pdf-btn');
+  btn.disabled = true;
+  btn.innerText = 'Generating PDF...';
+  google.script.run.withSuccessHandler(function(res){
+    btn.disabled = false;
+    btn.innerText = '📄 Download Impact Analysis PDF';
+    if(res.success){
+      const a = document.createElement('a');
+      a.href = res.pdfUrl;
+      a.download = 'impact_analysis.pdf';
+      a.click();
+      toast('Impact analysis PDF downloaded', 'success');
+    } else {
+      toast('Error: '+res.message, 'error');
+    }
+  }).withFailureHandler(function(err){
+    btn.disabled = false;
+    btn.innerText = '📄 Download Impact Analysis PDF';
+    toast('Error: '+err.message, 'error');
+  }).generateImpactPdfReport(TOKEN, testId, overallHtml, studentsHtml);
+}
+/* =================== END IMPACT ANALYSIS =================== */
 
 function generatePdfReport(){
   const testId = document.getElementById('rp-testid').value;
