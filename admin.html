@@ -158,6 +158,33 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
 .analytics-value{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,var(--primary),var(--primary-light));
   -webkit-background-clip:text;background-clip:text;color:transparent;}
 .analytics-label{font-size:.8rem;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:.03em;}
+
+/* ===================== LEADERBOARD PODIUM ===================== */
+.podium-wrap{display:flex;align-items:flex-end;justify-content:center;gap:14px;margin:20px 0 26px;position:relative;min-height:210px;}
+.podium-slot{display:flex;flex-direction:column;align-items:center;width:110px;position:relative;}
+.podium-avatar{width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;font-weight:800;color:#fff;margin-bottom:8px;box-shadow:0 4px 14px rgba(0,0,0,.2);
+  animation:podiumPop .5s cubic-bezier(.34,1.56,.64,1) both;}
+.podium-slot.gold .podium-avatar{background:linear-gradient(135deg,#ffd76a,#f5a623);}
+.podium-slot.silver .podium-avatar{background:linear-gradient(135deg,#e2e6ee,#a9b0c0);}
+.podium-slot.bronze .podium-avatar{background:linear-gradient(135deg,#e3a271,#b56a3c);}
+.podium-name{font-weight:700;font-size:.85rem;text-align:center;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.podium-roll{font-size:.72rem;color:var(--muted);margin-top:1px;}
+.podium-score{font-size:.78rem;font-weight:700;color:var(--primary);margin-top:2px;}
+.podium-block{width:100%;border-radius:10px 10px 0 0;margin-top:10px;display:flex;align-items:flex-start;
+  justify-content:center;padding-top:8px;font-size:1.5rem;font-weight:800;color:#fff;
+  animation:podiumRise .5s ease both;transform-origin:bottom;}
+.podium-slot.gold .podium-block{height:110px;background:linear-gradient(160deg,#ffd76a,#f0a92a);}
+.podium-slot.silver .podium-block{height:82px;background:linear-gradient(160deg,#dfe3ec,#a3aabb);}
+.podium-slot.bronze .podium-block{height:62px;background:linear-gradient(160deg,#e0a374,#a9633a);}
+.podium-slot.gold{order:2;} .podium-slot.silver{order:1;} .podium-slot.bronze{order:3;}
+@keyframes podiumRise{from{transform:scaleY(0);opacity:0;}to{transform:scaleY(1);opacity:1;}}
+@keyframes podiumPop{0%{transform:scale(0);opacity:0;}70%{transform:scale(1.15);}100%{transform:scale(1);opacity:1;}}
+.podium-crown{position:absolute;top:-22px;font-size:1.3rem;animation:crownBob 1.6s ease-in-out infinite;}
+@keyframes crownBob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+.confetti-piece{position:absolute;top:-10px;border-radius:2px;pointer-events:none;animation:confettiFall linear forwards;}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1;}100%{transform:translateY(220px) rotate(540deg);opacity:0;}}
+/* =================== END LEADERBOARD PODIUM ==================== */
 </style>
 </head>
 <body>
@@ -406,6 +433,7 @@ nav.tabs button.active{background:linear-gradient(135deg,var(--primary),var(--pr
         <label>Select Test</label>
         <select id="lb-testid" onchange="loadLeaderboard()"></select>
         <p class="small">Auto-refreshes every 10 seconds. Ranked by Score → Violations → Time.</p>
+        <div class="podium-wrap" id="lb-podium"></div>
         <div style="overflow-x:auto"><table id="lb-table" class="responsive">
           <thead><tr><th>Rank</th><th>Name</th><th>Roll</th><th>Score</th><th>Correct</th><th>Wrong</th><th>Violations</th><th>Avg Time</th></tr></thead>
           <tbody></tbody>
@@ -1164,13 +1192,65 @@ function loadAnalytics(){
   }).getTestAnalytics(TOKEN, testId);
 }
 
+/* ===================== LEADERBOARD PODIUM + CONFETTI ===================== */
+let lastPodiumKey = '';
+
+function renderPodium(rows){
+  const wrap = document.getElementById('lb-podium');
+  if(!wrap) return;
+  const top3 = rows.slice(0,3);
+  if(!top3.length){ wrap.innerHTML=''; lastPodiumKey=''; return; }
+  const key = top3.map(r=>r.roll+'-'+r.score).join('|');
+  const changed = key !== lastPodiumKey;
+  lastPodiumKey = key;
+
+  const order = ['gold','silver','bronze'];
+  let html = '';
+  top3.forEach((r, i) => {
+    const cls = order[i];
+    const initials = (r.name||'?').trim().split(/\s+/).map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    html += '<div class="podium-slot '+cls+'">'+
+      (cls==='gold' ? '<div class="podium-crown">👑</div>' : '') +
+      '<div class="podium-avatar">'+escapeHtml(initials)+'</div>'+
+      '<div class="podium-name">'+escapeHtml(r.name)+'</div>'+
+      '<div class="podium-roll">Roll: '+escapeHtml(r.roll)+'</div>'+
+      '<div class="podium-score">'+r.score+'/'+r.maxScore+'</div>'+
+      '<div class="podium-block">'+(i+1)+'</div>'+
+    '</div>';
+  });
+  wrap.innerHTML = html;
+  if(changed) sprinkleConfetti(wrap);
+}
+
+function sprinkleConfetti(container){
+  const colors = ['#4a86e8','#f5a623','#2fa86b','#e04b4b','#a463f2','#ff8fc4'];
+  for(let i=0;i<36;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    const size = 5 + Math.random()*5;
+    p.style.width = size+'px';
+    p.style.height = (size*0.4)+'px';
+    p.style.left = (Math.random()*100)+'%';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    const duration = 1.1 + Math.random()*0.9;
+    p.style.animationDuration = duration+'s';
+    p.style.animationDelay = (Math.random()*0.4)+'s';
+    container.appendChild(p);
+    setTimeout(() => p.remove(), (duration+0.4)*1000);
+  }
+}
+/* =================== END LEADERBOARD PODIUM + CONFETTI =================== */
+
 function loadLeaderboard(){
   const testId = document.getElementById('lb-testid').value;
   if(!testId) return;
   google.script.run.withSuccessHandler(function(rows){
+    renderPodium(rows);
     const tb = document.querySelector('#lb-table tbody'); tb.innerHTML='';
     if(!rows.length){ tb.innerHTML = '<tr><td colspan="8" class="small">No submissions yet.</td></tr>'; return; }
-    rows.forEach(r => {
+    const rest = rows.slice(3);
+    if(!rest.length){ tb.innerHTML = '<tr><td colspan="8" class="small">Top 3 shown on podium above.</td></tr>'; return; }
+    rest.forEach(r => {
       tb.innerHTML += '<tr>'+
         '<td data-label="Rank">'+r.rank+'</td>'+
         '<td data-label="Name">'+r.name+'</td>'+
