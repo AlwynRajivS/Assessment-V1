@@ -1438,6 +1438,25 @@ function topicTagsHtml(breakdown){
   }).join('');
 }
 
+// NEW: Topic-wise question-attempt detail table for a single student
+function topicDetailsTableHtml(breakdown){
+  if(!breakdown.length) return '<div class="small" style="margin-top:4px">No topic data yet — add a Topic to your questions.</div>';
+  const rows = breakdown.map(function(t){
+    const attempted = t.correct + t.wrong;
+    return '<tr>'+
+      '<td data-label="Topic">'+escapeHtml(t.topic)+'</td>'+
+      '<td data-label="Attempted">'+attempted+' / '+t.total+'</td>'+
+      '<td data-label="Correct">'+t.correct+'</td>'+
+      '<td data-label="Wrong">'+t.wrong+'</td>'+
+      '<td data-label="Unattempted">'+t.unattempted+'</td>'+
+      '<td data-label="Accuracy"><span class="impact-tag '+topicAccuracyTag(t.accuracy)+'">'+t.accuracy.toFixed(0)+'%</span></td>'+
+    '</tr>';
+  }).join('');
+  return '<div style="overflow-x:auto;margin-top:4px"><table class="responsive">'+
+    '<thead><tr><th>Topic</th><th>Attempted</th><th>Correct</th><th>Wrong</th><th>Unattempted</th><th>Accuracy</th></tr></thead>'+
+    '<tbody>'+rows+'</tbody></table></div>';
+}
+
 function computeStudentImpact(r, classAvgTime, studentTopics){
   const correct = Number(r.correct)||0;
   const wrong = Number(r.wrong)||0;
@@ -1608,7 +1627,7 @@ function renderImpactAnalysis(topicData){
         '<div style="margin-top:6px" class="small">Accuracy: '+i.accuracy.toFixed(0)+'% &nbsp;|&nbsp; Completion: '+i.completion.toFixed(0)+'% &nbsp;|&nbsp; Score: '+i.scorePct.toFixed(0)+'% &nbsp;|&nbsp; Violations: '+i.violations+'</div>'+
         '<div style="margin-top:8px"><b class="small">Strengths</b><ul class="impact-list">'+i.strengths.map(s=>'<li>'+escapeHtml(s)+'</li>').join('')+'</ul></div>'+
         '<div><b class="small">Weak Areas</b><ul class="impact-list">'+i.weaknesses.map(s=>'<li>'+escapeHtml(s)+'</li>').join('')+'</ul></div>'+
-        '<div style="margin-top:6px"><b class="small">📚 Topic-wise Performance</b><div style="margin-top:4px">'+topicTagsHtml(i.topicBreakdown)+'</div></div>'+
+        '<div style="margin-top:6px"><b class="small">📚 Topic-wise Question Details</b>'+topicDetailsTableHtml(i.topicBreakdown)+'</div>'+
         (i.pacingNote ? '<div class="small" style="margin-top:4px">⏱️ '+escapeHtml(i.pacingNote)+'</div>' : '')+
         '<div class="impact-suggestion">💡 '+escapeHtml(i.suggestion)+'</div>';
       studentsDiv.appendChild(card);
