@@ -1420,13 +1420,15 @@ function topicAccuracyTag(acc){
 
 // topics: {TopicName:{correct,wrong,unattempted,total}} -> sorted array with accuracy + tag
 // Topics with zero attempts (correct+wrong===0) are excluded from ranking (not enough data).
+// NEW — keep every topic that has at least one question, even if unattempted
 function computeTopicBreakdown(topics){
   const list = Object.keys(topics||{}).map(function(t){
     const d = topics[t];
     const attempted = (d.correct||0) + (d.wrong||0);
-    const accuracy = attempted > 0 ? (d.correct/attempted*100) : null;
-    return { topic: t, correct: d.correct, wrong: d.wrong, unattempted: d.unattempted, total: d.total, accuracy: accuracy };
-  }).filter(function(x){ return x.accuracy !== null; });
+    const accuracy = attempted > 0 ? (d.correct/attempted*100) : 0; // 0% if nothing attempted, not excluded
+    return { topic: t, correct: d.correct||0, wrong: d.wrong||0, unattempted: d.unattempted||0,
+      total: d.total||0, attempted: attempted, accuracy: accuracy };
+  }).filter(function(x){ return x.total > 0; }); // only drop topics with no questions at all
   list.sort(function(a,b){ return a.accuracy - b.accuracy; });
   return list;
 }
@@ -1440,16 +1442,18 @@ function topicTagsHtml(breakdown){
 
 // NEW: Topic-wise question-attempt detail table for a single student
 function topicDetailsTableHtml(breakdown){
-  if(!breakdown.length) return '<div class="small" style="margin-top:4px">No topic data yet — add a Topic to your questions.</div>';
+  if(!breakdown.length) return '<div class="small" style="margin-top:4px">No topic data available for this test — questions may not have topics assigned.</div>';
   const rows = breakdown.map(function(t){
-    const attempted = t.correct + t.wrong;
+    const accCell = t.attempted > 0
+      ? '<span class="impact-tag '+topicAccuracyTag(t.accuracy)+'">'+t.accuracy.toFixed(0)+'%</span>'
+      : '<span class="small">Not attempted</span>';
     return '<tr>'+
       '<td data-label="Topic">'+escapeHtml(t.topic)+'</td>'+
-      '<td data-label="Attempted">'+attempted+' / '+t.total+'</td>'+
+      '<td data-label="Attempted">'+t.attempted+' / '+t.total+'</td>'+
       '<td data-label="Correct">'+t.correct+'</td>'+
       '<td data-label="Wrong">'+t.wrong+'</td>'+
       '<td data-label="Unattempted">'+t.unattempted+'</td>'+
-      '<td data-label="Accuracy"><span class="impact-tag '+topicAccuracyTag(t.accuracy)+'">'+t.accuracy.toFixed(0)+'%</span></td>'+
+      '<td data-label="Accuracy">'+accCell+'</td>'+
     '</tr>';
   }).join('');
   return '<div style="overflow-x:auto;margin-top:4px"><table class="responsive">'+
